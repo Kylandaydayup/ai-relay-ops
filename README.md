@@ -45,6 +45,7 @@ Service runtime configuration is rendered into each workload's Pod spec from the
 ```bash
 scripts/deploy-staging-139.sh
 scripts/apply-nginx-config.sh
+scripts/configure-casdoor-staging-139.sh
 scripts/migrate-newapi-docker-to-k8s-139.sh
 ```
 

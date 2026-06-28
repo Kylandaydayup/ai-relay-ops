@@ -27,12 +27,15 @@ The 139 validation host keeps system-level ports and public paths in values file
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 scripts/deploy-staging-139.sh
 scripts/apply-nginx-config.sh
+scripts/configure-casdoor-staging-139.sh
 scripts/migrate-newapi-docker-to-k8s-139.sh
 ```
 
 The Nginx script stores backups in `/root/nginx-backups`, outside `sites-enabled`, so backups are not accidentally loaded as active virtual hosts.
 
 The New API migration script copies the legacy Docker New API database into the Kubernetes New API database, rewrites Casdoor OAuth endpoints to the validation host, and ensures the Casdoor `new-api` application exists with the local callback URL.
+
+The Casdoor staging configuration script rewrites imported production application URLs for 139. In particular, it keeps the `edream` organization default application as `eDream_web` and points the app homepage to `http://139.196.254.8/zhongchou/`.
 
 ## Smoke Test
 
