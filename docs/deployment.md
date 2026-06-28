@@ -2,14 +2,14 @@
 
 ## Migration Order
 
-1. Inventory existing host services.
-2. Install Kubernetes without changing existing public traffic.
-3. Deploy `new-api` and `broker` in the `platform` namespace.
-4. Validate Broker -> new-api and Broker -> Casdoor.
-5. Connect existing ArcReel deployment to Broker.
-6. Migrate ArcReel-WhiteLabel after the new chain is stable.
-7. Migrate Casdoor last.
-8. Migrate EDreamCrowd last or leave it as direct deployment.
+1. Inventory existing production services with read-only commands.
+2. Install Kubernetes on the validation host without changing production traffic.
+3. Deploy the integrated stack in the `platform` namespace: Postgres, Casdoor, EDreamCrowd, `new-api`, and Broker.
+4. Import business data into the validation databases.
+5. Rewrite environment-specific OAuth callbacks and public origins for the validation host.
+6. Apply the host Nginx entrypoint from this repository.
+7. Validate browser entrypoints, OAuth login, New API status, Broker health, and EDreamCrowd flows.
+8. Plan production migration only after the validation stack is repeatable and rollback is documented.
 
 ## First Install
 
@@ -27,9 +27,12 @@ The 139 validation host keeps system-level ports and public paths in values file
 export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 scripts/deploy-staging-139.sh
 scripts/apply-nginx-config.sh
+scripts/migrate-newapi-docker-to-k8s-139.sh
 ```
 
 The Nginx script stores backups in `/root/nginx-backups`, outside `sites-enabled`, so backups are not accidentally loaded as active virtual hosts.
+
+The New API migration script copies the legacy Docker New API database into the Kubernetes New API database, rewrites Casdoor OAuth endpoints to the validation host, and ensures the Casdoor `new-api` application exists with the local callback URL.
 
 ## Smoke Test
 

@@ -27,6 +27,14 @@ make status ENV=prod
 
 ## Staging 139
 
+The 139 validation host runs the platform as one integrated Kubernetes-managed stack:
+
+- Casdoor as the identity source.
+- EDreamCrowd frontend and backend.
+- `new-api` as the model relay console and upstream channel manager.
+- `ai-relay-broker` as the product-facing quota and relay layer.
+- Host Nginx as the public entrypoint for `/`, `/zhongchou/`, `/casdoor/`, and `/broker/`.
+
 System-level deployment parameters, including ports and public paths, live in:
 
 - `environments/staging/*.values.yaml`
@@ -37,8 +45,9 @@ Service runtime configuration is rendered into each workload's Pod spec from the
 ```bash
 scripts/deploy-staging-139.sh
 scripts/apply-nginx-config.sh
+scripts/migrate-newapi-docker-to-k8s-139.sh
 ```
 
 ## Production Migration Principle
 
-Existing production services stay on the host first. Deploy `new-api` and `ai-relay-broker` into k8s as new capabilities, then connect the existing ArcReel deployment to Broker. Migrate Casdoor and EDreamCrowd only after the new chain is stable.
+Production is still the source of truth and must not be changed during staging validation. Use 139 to prove the integrated stack first, including database migration, OAuth callback rewrites, Nginx routing, and smoke checks. Move production only after the same scripts are proven repeatable and a rollback window is agreed.
