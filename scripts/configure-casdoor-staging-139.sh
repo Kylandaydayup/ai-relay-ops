@@ -17,9 +17,29 @@ redirect_uris="[\"${public_base_url}${root_callback_path}\",\"${public_base_url}
 echo "configuring Casdoor staging application URLs..."
 kubectl exec -i -n "$namespace" "$postgres_pod" -- \
   psql -U postgres -d casdoor -v ON_ERROR_STOP=1 \
-    -v public_base_url="$public_base_url" \
     -v crowd_homepage_url="$crowd_homepage_url" \
     -v redirect_uris="$redirect_uris" <<'SQL'
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM organization WHERE owner = 'admin' AND name = 'edream'
+  ) THEN
+    RAISE EXCEPTION 'required Casdoor organization is missing: admin/edream';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM application WHERE owner = 'admin' AND name = 'eDream_web'
+  ) THEN
+    RAISE EXCEPTION 'required Casdoor application is missing: admin/eDream_web';
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM application WHERE owner = 'admin' AND name = 'eDream_app'
+  ) THEN
+    RAISE EXCEPTION 'required Casdoor application is missing: admin/eDream_app';
+  END IF;
+END $$;
+
 UPDATE organization
 SET website_url = :'crowd_homepage_url',
     default_application = 'eDream_web'
