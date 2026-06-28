@@ -50,6 +50,19 @@ SET homepage_url = :'crowd_homepage_url',
     organization = 'edream',
     redirect_uris = :'redirect_uris'
 WHERE owner = 'admin' AND name = 'eDream_web';
+
+INSERT INTO casbin_api_rule (ptype, v0, v1, v2, v3, v4, v5)
+SELECT 'p', '*', '*', 'POST', '/api/native-sso-complete', '*', '*'
+WHERE NOT EXISTS (
+  SELECT 1 FROM casbin_api_rule
+  WHERE ptype = 'p'
+    AND v0 = '*'
+    AND v1 = '*'
+    AND v2 = 'POST'
+    AND v3 = '/api/native-sso-complete'
+    AND v4 = '*'
+    AND v5 = '*'
+);
 SQL
 
 configured_count="$(kubectl exec -n "$namespace" "$postgres_pod" -- \
