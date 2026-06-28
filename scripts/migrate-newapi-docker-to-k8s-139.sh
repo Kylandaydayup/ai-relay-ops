@@ -11,6 +11,9 @@ docker_postgres_container="${DOCKER_NEWAPI_POSTGRES_CONTAINER:-new-api-postgres}
 docker_database="${DOCKER_NEWAPI_DATABASE:-new_api}"
 docker_user="${DOCKER_NEWAPI_USER:-newapi}"
 backup_root="${BACKUP_ROOT:-/root/platform-backups}"
+public_base_url="${PUBLIC_BASE_URL:-http://139.196.254.8}"
+casdoor_public_base_url="${CASDOOR_PUBLIC_BASE_URL:-${public_base_url}/casdoor}"
+newapi_oauth_slug="${NEWAPI_CASDOOR_OAUTH_SLUG:-ymmjc}"
 timestamp="$(date +%Y%m%d%H%M%S)"
 backup_dir="${backup_root}/newapi-docker-to-k8s-${timestamp}"
 old_dump="${backup_dir}/docker-newapi.dump"
@@ -50,6 +53,77 @@ kubectl exec -n "$namespace" "$postgres_pod" -- psql -U postgres -d "$k8s_databa
 echo "restoring legacy Docker new-api data into K8s database..."
 kubectl exec -i -n "$namespace" "$postgres_pod" -- \
   pg_restore -U postgres -d "$k8s_database" --no-owner --no-privileges --role="$k8s_owner" < "$old_dump"
+
+echo "rewriting new-api Casdoor OAuth endpoints for this environment..."
+kubectl exec -i -n "$namespace" "$postgres_pod" -- \
+  psql -U postgres -d "$k8s_database" -v ON_ERROR_STOP=1 \
+    -v slug="$newapi_oauth_slug" \
+    -v casdoor_base="$casdoor_public_base_url" <<'SQL'
+UPDATE custom_oauth_providers
+SET authorization_endpoint = :'casdoor_base' || '/login/oauth/authorize',
+    token_endpoint = :'casdoor_base' || '/api/login/oauth/access_token',
+    user_info_endpoint = :'casdoor_base' || '/api/userinfo',
+    enabled = true,
+    updated_at = now()
+WHERE slug = :'slug';
+SQL
+
+provider_count="$(kubectl exec -n "$namespace" "$postgres_pod" -- \
+  psql -U postgres -d "$k8s_database" -At \
+    -v slug="$newapi_oauth_slug" \
+    -c "SELECT count(*) FROM custom_oauth_providers WHERE slug = :'slug'")"
+if [ "$provider_count" != "1" ]; then
+  echo "new-api custom OAuth provider slug was not found: $newapi_oauth_slug" >&2
+  exit 1
+fi
+
+provider_credentials="$(kubectl exec -n "$namespace" "$postgres_pod" -- \
+  psql -U postgres -d "$k8s_database" -AtF $'\t' \
+    -v slug="$newapi_oauth_slug" \
+    -c "SELECT client_id, client_secret FROM custom_oauth_providers WHERE slug = :'slug' LIMIT 1")"
+IFS=$'\t' read -r newapi_client_id newapi_client_secret <<< "$provider_credentials"
+if [ -z "$newapi_client_id" ] || [ -z "$newapi_client_secret" ]; then
+  echo "missing new-api custom OAuth client credentials after restore" >&2
+  exit 1
+fi
+
+newapi_redirect_uri="${public_base_url}/oauth/${newapi_oauth_slug}"
+newapi_redirect_uris="[\"${newapi_redirect_uri}\"]"
+
+echo "ensuring Casdoor application for new-api OAuth callback..."
+kubectl exec -i -n "$namespace" "$postgres_pod" -- \
+  psql -U postgres -d casdoor -v ON_ERROR_STOP=1 \
+    -v client_id="$newapi_client_id" \
+    -v client_secret="$newapi_client_secret" \
+    -v public_base_url="$public_base_url" \
+    -v redirect_uris="$newapi_redirect_uris" <<'SQL'
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM application WHERE owner = 'admin' AND name = 'eDream_web'
+  ) THEN
+    RAISE EXCEPTION 'Casdoor eDream_web application is required as the new-api template';
+  END IF;
+END $$;
+
+DELETE FROM application WHERE owner = 'admin' AND name = 'new-api';
+CREATE TEMP TABLE newapi_app_template AS
+  SELECT * FROM application WHERE owner = 'admin' AND name = 'eDream_web';
+
+UPDATE newapi_app_template
+SET name = 'new-api',
+    display_name = 'New API',
+    title = 'New API',
+    homepage_url = :'public_base_url',
+    organization = 'edream',
+    client_id = :'client_id',
+    client_secret = :'client_secret',
+    redirect_uris = :'redirect_uris',
+    signin_url = '',
+    signup_url = '';
+
+INSERT INTO application SELECT * FROM newapi_app_template;
+SQL
 
 echo "restoring K8s new-api deployment replicas: $previous_replicas"
 kubectl scale deployment/"$k8s_deployment" -n "$namespace" --replicas="$previous_replicas"

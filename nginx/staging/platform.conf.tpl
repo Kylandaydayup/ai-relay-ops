@@ -18,7 +18,7 @@ server {
     }
 
     location = ${CASDOOR_BASE_PATH_SLASH} {
-        return 302 ${CASDOOR_BASE_PATH_SLASH}login;
+        return 302 ${CASDOOR_DEFAULT_LOGIN_PATH};
     }
 
     location ${CASDOOR_BASE_PATH_SLASH} {
