@@ -49,6 +49,7 @@ server {
         sub_filter '"/api/' '"${CASDOOR_BASE_PATH}/api/';
         sub_filter "'/static/" "'${CASDOOR_BASE_PATH}/static/";
         sub_filter "'/api/" "'${CASDOOR_BASE_PATH}/api/";
+        sub_filter '__webpack_require__.p="/"' '__webpack_require__.p="${CASDOOR_BASE_PATH_SLASH}"';
         sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:"${CASDOOR_BASE_PATH}",children:';
     }
 
