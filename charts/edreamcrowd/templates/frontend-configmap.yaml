@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "edreamcrowd.fullname" . }}-frontend-nginx
+  labels:
+    {{- include "edreamcrowd.labels" . | nindent 4 }}
+data:
+  runtime-config.js: |
+    window.__EDREAM_CONFIG__ = {
+      edreamDownloadUrl: {{ .Values.frontend.runtimeConfig.edreamDownloadUrl | default "https://download.arc-reel.com/edream/latest" | toJson }}
+    };
+  default.conf: |
+    server {
+        listen {{ .Values.frontend.containerPort }};
+        server_name {{ .Values.frontend.nginx.serverName }};
+        root {{ .Values.frontend.nginx.root }};
+        index index.html;
+
+        location = {{ .Values.frontend.nginx.basePath | trimSuffix "/" }} {
+            return 301 {{ .Values.frontend.nginx.basePath }};
+        }
+
+        location {{ .Values.frontend.nginx.basePath }} {
+            try_files $uri $uri/ {{ .Values.frontend.nginx.basePath }}index.html;
+        }
+
+        location = {{ .Values.frontend.nginx.basePath }}runtime-config.js {
+            alias {{ .Values.frontend.nginx.root }}/runtime-config.js;
+            add_header Cache-Control "no-store";
+        }
+
+        location / {
+            try_files $uri $uri/ /index.html;
+        }
+
+        location {{ .Values.frontend.nginx.apiPath }} {
+            proxy_pass http://{{ include "edreamcrowd.fullname" . }}-backend:{{ .Values.backend.service.port }}{{ .Values.frontend.nginx.apiPath }};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            client_max_body_size {{ .Values.frontend.nginx.clientMaxBodySize }};
+        }
+
+        location {{ .Values.frontend.nginx.oauthPath }} {
+            proxy_pass http://{{ include "edreamcrowd.fullname" . }}-backend:{{ .Values.backend.service.port }}{{ .Values.frontend.nginx.oauthPath }};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location {{ .Values.frontend.nginx.loginOauthPath }} {
+            proxy_pass http://{{ include "edreamcrowd.fullname" . }}-backend:{{ .Values.backend.service.port }}{{ .Values.frontend.nginx.loginOauthPath }};
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }

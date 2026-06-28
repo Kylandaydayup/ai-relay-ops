@@ -1,0 +1,40 @@
+fullnameOverride: relay-broker
+
+replicaCount: 1
+
+image:
+  repository: ai-relay-broker
+  tag: v0.1.5
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: NodePort
+  port: 8080
+  nodePort: 30080
+
+ingress:
+  enabled: false
+  hosts: []
+  tls: []
+
+env:
+  AUTH_MODE: jwt
+  BROKER_ENVIRONMENT: staging
+  BROKER_PUBLIC_URL: http://139.196.254.8/broker
+  CASDOOR_ISSUER: http://139.196.254.8/casdoor
+  CASDOOR_AUDIENCE: ec5db9ad91bb6b87656b
+  CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
+  NEWAPI_BASE_URL: http://relay-new-api:3000
+  NEWAPI_ADMIN_USER_ID: "1"
+  BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
+
+secret:
+  create: true
+  DATABASE_URL: postgresql+psycopg://broker:change-me@platform-postgres:5432/broker_db
+  CASDOOR_CLIENT_SECRET: change-me
+  NEWAPI_ADMIN_ACCESS_TOKEN: change-me
+  INTERNAL_API_KEY: change-me
+
+resources: {}

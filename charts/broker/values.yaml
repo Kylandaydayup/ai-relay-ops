@@ -1,0 +1,52 @@
+replicaCount: 1
+
+image:
+  repository: ai-relay-broker
+  tag: v0.1.5
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+  nodePort: null
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+env:
+  AUTH_MODE: jwt
+  BROKER_PUBLIC_URL: ""
+  CASDOOR_ISSUER: ""
+  CASDOOR_AUDIENCE: arcreel
+  CASDOOR_JWKS_URL: ""
+  NEWAPI_BASE_URL: ""
+  NEWAPI_ADMIN_USER_ID: "1"
+  BROKER_MODEL_CATALOG_JSON: ""
+
+probes:
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 20
+
+secret:
+  create: true
+  name: ""
+  DATABASE_URL: ""
+  CASDOOR_CLIENT_SECRET: ""
+  NEWAPI_ADMIN_ACCESS_TOKEN: ""
+  INTERNAL_API_KEY: ""
+
+resources: {}
+
+podAnnotations: {}

@@ -1,0 +1,25 @@
+fullnameOverride: casdoor
+
+image:
+  repository: casbin/casdoor
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 8000
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: 30082
+
+config:
+  httpPort: 8000
+  origin: http://139.196.254.8/casdoor
+  dataSourceName: ""
+
+resources:
+  requests:
+    memory: 256Mi
+    cpu: 50m
+  limits:
+    memory: 768Mi

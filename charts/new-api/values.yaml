@@ -1,0 +1,51 @@
+replicaCount: 1
+
+image:
+  repository: calciumion/new-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 3000
+  nodePort: null
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+env:
+  TZ: Asia/Shanghai
+  NODE_NAME: new-api-k8s-1
+
+probes:
+  readiness:
+    path: /api/status
+    initialDelaySeconds: 15
+    periodSeconds: 10
+  liveness:
+    path: /api/status
+    initialDelaySeconds: 30
+    periodSeconds: 20
+
+secret:
+  create: true
+  name: ""
+  SQL_DSN: ""
+  REDIS_CONN_STRING: ""
+  SESSION_SECRET: ""
+  CRYPTO_SECRET: ""
+
+resources: {}
+
+persistence:
+  enabled: false
+  size: 10Gi
+  storageClassName: ""
+
+podAnnotations: {}
