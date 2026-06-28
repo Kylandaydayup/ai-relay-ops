@@ -3,10 +3,11 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 edream_repo="${EDREAMCROWD_REPO_ROOT:-/root/EDreamCrowd}"
-frontend_tag="${EDREAMCROWD_FRONTEND_IMAGE_TAG:-staging-139-v4}"
+frontend_tag="${EDREAMCROWD_FRONTEND_IMAGE_TAG:-staging-139-v5}"
 backend_tag="${EDREAMCROWD_BACKEND_IMAGE_TAG:-staging-139}"
 build_frontend="${BUILD_FRONTEND:-true}"
 build_backend="${BUILD_BACKEND:-false}"
+frontend_public_base="${EDREAMCROWD_FRONTEND_PUBLIC_BASE:-/zhongchou/}"
 node_image="${NODE_BASE_IMAGE:-www.nexushome.top/base-images/node:20-alpine}"
 nginx_image="${NGINX_BASE_IMAGE:-www.nexushome.top/base-images/nginx:alpine}"
 maven_image="${MAVEN_BASE_IMAGE:-www.nexushome.top/base-images/maven:3.9.9-eclipse-temurin-21}"
@@ -26,6 +27,7 @@ if [ "$build_frontend" = "true" ]; then
   docker build \
     --build-arg NODE_BASE_IMAGE="$node_image" \
     --build-arg NGINX_BASE_IMAGE="$nginx_image" \
+    --build-arg VITE_PUBLIC_BASE="$frontend_public_base" \
     -f "$edream_repo/frontend/Dockerfile" \
     -t "edreamcrowd-frontend:${frontend_tag}" \
     "$edream_repo/frontend"

@@ -30,6 +30,8 @@ server {
         proxy_read_timeout 300s;
         proxy_send_timeout 300s;
         proxy_redirect ~^(/.*)$ ${CASDOOR_BASE_PATH}$1;
+        proxy_hide_header ETag;
+        add_header Cache-Control "no-store";
         proxy_set_header Accept-Encoding "";
         sub_filter_once off;
         sub_filter_types application/javascript text/css;
@@ -39,23 +41,23 @@ server {
         sub_filter '"/api/' '"${CASDOOR_BASE_PATH}/api/';
         sub_filter "'/static/" "'${CASDOOR_BASE_PATH}/static/";
         sub_filter "'/api/" "'${CASDOOR_BASE_PATH}/api/";
+        sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:"${CASDOOR_BASE_PATH}",children:';
     }
 
     location ${BROKER_INTERNAL_PATH} {
         return 404;
     }
 
-    location ${NEWAPI_K8S_BASE_PATH} {
-        proxy_pass ${RELAY_NEWAPI_UPSTREAM}/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
+    location = ${NEWAPI_BASE_PATH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_BASE_PATH_SLASH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_OLD_BASE_PATH} {
+        return 301 /;
     }
 
     location ${BROKER_BASE_PATH} {
@@ -111,7 +113,7 @@ server {
     }
 
     location / {
-        proxy_pass ${LEGACY_NEWAPI_UPSTREAM};
+        proxy_pass ${ROOT_NEWAPI_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -134,17 +136,16 @@ server {
         return 404;
     }
 
-    location ${NEWAPI_K8S_BASE_PATH} {
-        proxy_pass ${RELAY_NEWAPI_UPSTREAM}/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
+    location = ${NEWAPI_BASE_PATH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_BASE_PATH_SLASH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_OLD_BASE_PATH} {
+        return 301 /;
     }
 
     location ${BROKER_BASE_PATH} {
@@ -159,7 +160,7 @@ server {
     }
 
     location / {
-        proxy_pass ${LEGACY_NEWAPI_UPSTREAM};
+        proxy_pass ${ROOT_NEWAPI_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -188,17 +189,16 @@ server {
         return 404;
     }
 
-    location ${NEWAPI_K8S_BASE_PATH} {
-        proxy_pass ${RELAY_NEWAPI_UPSTREAM}/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
+    location = ${NEWAPI_BASE_PATH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_BASE_PATH_SLASH} {
+        return 301 /;
+    }
+
+    location ${NEWAPI_OLD_BASE_PATH} {
+        return 301 /;
     }
 
     location ${BROKER_BASE_PATH} {
@@ -213,7 +213,7 @@ server {
     }
 
     location / {
-        proxy_pass ${LEGACY_NEWAPI_UPSTREAM};
+        proxy_pass ${ROOT_NEWAPI_UPSTREAM};
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;

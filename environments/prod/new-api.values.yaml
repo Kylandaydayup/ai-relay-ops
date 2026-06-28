@@ -23,7 +23,7 @@ ingress:
 
 env:
   TZ: Asia/Shanghai
-  NODE_NAME: new-api-k8s-1
+  NODE_NAME: relay-new-api-1
 
 secret:
   create: true

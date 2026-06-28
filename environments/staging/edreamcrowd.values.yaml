@@ -27,7 +27,7 @@ frontend:
   containerPort: 80
   image:
     repository: edreamcrowd-frontend
-    tag: staging-139-v4
+    tag: staging-139-v5
     pullPolicy: IfNotPresent
   service:
     type: NodePort
