@@ -21,6 +21,13 @@ k8s_dump="${backup_dir}/k8s-newapi-before.dump"
 
 export KUBECONFIG="$kubeconfig"
 
+case "$newapi_oauth_slug" in
+  ""|*[!A-Za-z0-9_-]*)
+    echo "invalid NEWAPI_CASDOOR_OAUTH_SLUG: $newapi_oauth_slug" >&2
+    exit 2
+    ;;
+esac
+
 mkdir -p "$backup_dir"
 
 echo "backup dir: $backup_dir"
@@ -70,8 +77,7 @@ SQL
 
 provider_count="$(kubectl exec -n "$namespace" "$postgres_pod" -- \
   psql -U postgres -d "$k8s_database" -At \
-    -v slug="$newapi_oauth_slug" \
-    -c "SELECT count(*) FROM custom_oauth_providers WHERE slug = :'slug'")"
+    -c "SELECT count(*) FROM custom_oauth_providers WHERE slug = '${newapi_oauth_slug}'")"
 if [ "$provider_count" != "1" ]; then
   echo "new-api custom OAuth provider slug was not found: $newapi_oauth_slug" >&2
   exit 1
@@ -79,8 +85,7 @@ fi
 
 provider_credentials="$(kubectl exec -n "$namespace" "$postgres_pod" -- \
   psql -U postgres -d "$k8s_database" -AtF $'\t' \
-    -v slug="$newapi_oauth_slug" \
-    -c "SELECT client_id, client_secret FROM custom_oauth_providers WHERE slug = :'slug' LIMIT 1")"
+    -c "SELECT client_id, client_secret FROM custom_oauth_providers WHERE slug = '${newapi_oauth_slug}' LIMIT 1")"
 IFS=$'\t' read -r newapi_client_id newapi_client_secret <<< "$provider_credentials"
 if [ -z "$newapi_client_id" ] || [ -z "$newapi_client_secret" ]; then
   echo "missing new-api custom OAuth client credentials after restore" >&2
