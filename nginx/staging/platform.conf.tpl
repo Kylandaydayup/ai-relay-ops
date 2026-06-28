@@ -21,6 +21,10 @@ server {
         return 302 ${CASDOOR_DEFAULT_LOGIN_PATH};
     }
 
+    location = ${CASDOOR_BASE_PATH_SLASH}login {
+        return 302 ${CASDOOR_DEFAULT_LOGIN_PATH};
+    }
+
     location ${CASDOOR_BASE_PATH_SLASH} {
         proxy_pass ${CASDOOR_UPSTREAM}/;
         proxy_http_version 1.1;
