@@ -9,7 +9,7 @@ HELM_ARGS ?=
 CHART := charts/$(SERVICE)
 VALUES := environments/$(ENV)/$(SERVICE).values.yaml
 
-.PHONY: template lint install upgrade rollback uninstall status namespace
+.PHONY: template lint install upgrade rollback uninstall status namespace verify-nginx-staging
 
 namespace:
 	kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
@@ -40,3 +40,6 @@ uninstall:
 status:
 	kubectl get pods,svc,ingress -n $(NAMESPACE)
 	helm list -n $(NAMESPACE)
+
+verify-nginx-staging:
+	scripts/verify-nginx-staging.sh

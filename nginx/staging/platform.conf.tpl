@@ -43,6 +43,7 @@ server {
         proxy_set_header Accept-Encoding "";
         sub_filter_once off;
         sub_filter_types application/javascript text/css;
+        sub_filter '</body>' '<script>(function(){var target="${CASDOOR_DEFAULT_AFTER_LOGIN_URL}";setInterval(function(){if(window.location.pathname==="${CASDOOR_BASE_PATH_SLASH}"){window.location.replace(target)}},500)})()</script></body>';
         sub_filter '="/static/' '="${CASDOOR_BASE_PATH}/static/';
         sub_filter '="/api/' '="${CASDOOR_BASE_PATH}/api/';
         sub_filter '"/static/' '"${CASDOOR_BASE_PATH}/static/';
@@ -51,6 +52,8 @@ server {
         sub_filter "'/api/" "'${CASDOOR_BASE_PATH}/api/";
         sub_filter '__webpack_require__.p="/"' '__webpack_require__.p="${CASDOOR_BASE_PATH_SLASH}"';
         sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:"${CASDOOR_BASE_PATH}",children:';
+        sub_filter 'return null===e?"/":e}function scrollToDiv' 'return!e||"/"===e||"${CASDOOR_BASE_PATH}"===e||"${CASDOOR_BASE_PATH_SLASH}"===e||e.indexOf("/login")>=0?"${CASDOOR_DEFAULT_AFTER_LOGIN_URL}":e}function scrollToDiv';
+        sub_filter 'null!==t&&""!==t?window.location.href=t:c.goToLink("/")' 't&&""!==t&&"/"!==t&&"${CASDOOR_BASE_PATH}"!==t&&"${CASDOOR_BASE_PATH_SLASH}"!==t&&t.indexOf("/login")<0?window.location.href=t:window.location.href="${CASDOOR_DEFAULT_AFTER_LOGIN_URL}"';
     }
 
     location ${BROKER_INTERNAL_PATH} {
