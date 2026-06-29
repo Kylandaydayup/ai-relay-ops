@@ -58,7 +58,6 @@ casdoor:
   basePath: /casdoor
   basePathSlash: /casdoor/
   defaultLoginPath: /casdoor/login/edream
-  defaultAfterLoginUrl: http://127.0.0.1/zhongchou/
 
 newApi:
   basePath: /new-api

@@ -50,7 +50,8 @@ require_text environments/staging/platform.values.yaml "instanceOverride: casdoo
 require_text environments/staging/platform.values.yaml "instanceOverride: edreamcrowd" "EDreamCrowd existing release selector preservation"
 
 require_text charts/gateway/templates/configmap.yaml "sub_filter '__webpack_require__.p=\"/\"'" "Casdoor chunk path rewrite"
-require_text charts/gateway/templates/configmap.yaml "defaultAfterLoginUrl" "Casdoor default login return value"
+require_text charts/gateway/templates/configmap.yaml "return null===e?\"{{ .Values.casdoor.basePathSlash }}\":e" "Casdoor direct login stays in the console"
+require_text charts/gateway/templates/configmap.yaml "c.goToLink(\"{{ .Values.casdoor.basePathSlash }}\")" "Casdoor existing session stays in the console"
 require_text charts/gateway/templates/configmap.yaml "proxy_pass {{ .Values.upstreams.newApi }}" "new-api upstream from values"
 require_text charts/gateway/templates/configmap.yaml "proxy_pass {{ .Values.upstreams.casdoor }}/" "Casdoor upstream from values"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.api }}" "optional API domain server"

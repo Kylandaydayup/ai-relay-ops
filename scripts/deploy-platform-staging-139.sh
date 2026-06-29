@@ -49,7 +49,7 @@ require_command() {
 }
 
 is_nginx_active_on_host_port_80() {
-  ss -ltnp 2>/dev/null | grep -E '(:80[[:space:]]|:80$)' | grep -q nginx
+  systemctl is-active --quiet nginx && ss -ltnp 2>/dev/null | grep -E '(:80[[:space:]]|:80$)' | grep -q nginx
 }
 
 restore_host_nginx_on_failure() {

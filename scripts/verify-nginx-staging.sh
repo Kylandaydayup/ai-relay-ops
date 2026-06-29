@@ -25,6 +25,17 @@ require_rendered() {
   fi
 }
 
+reject_rendered() {
+  local unexpected=$1
+  local description=$2
+
+  if grep -Fq "$unexpected" "$rendered_file"; then
+    echo "unexpected nginx config: $description" >&2
+    echo "found: $unexpected" >&2
+    exit 1
+  fi
+}
+
 require_optional_server() {
   local value=$1
   local description=$2
@@ -34,7 +45,6 @@ require_optional_server() {
   fi
 }
 
-require_rendered "return 302 /casdoor/login/edream;" "Casdoor root opens the staging organization login page"
 require_rendered "proxy_pass http://${HOST_UPSTREAM_IP}:${NEWAPI_NODE_PORT};" "new-api upstream is built from the required host/port values"
 require_rendered "proxy_pass http://${HOST_UPSTREAM_IP}:${CASDOOR_NODE_PORT}/;" "Casdoor upstream is built from the required host/port values"
 require_optional_server "$API_SERVER_NAME" "API domain routes to the k8s new-api public entry"
@@ -46,8 +56,8 @@ if [ -n "$ARCREEL_SERVER_NAME" ]; then
 fi
 require_rendered "sub_filter '__webpack_require__.p=\"/\"' '__webpack_require__.p=\"/casdoor/\"';" "Casdoor chunks load from the /casdoor/ base path"
 require_rendered "sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:\"/casdoor\",children:';" "Casdoor React router is mounted under /casdoor"
-require_rendered "sub_filter 'return null===e?\"/\":e}function scrollToDiv' 'return!e||\"/\"===e||\"/casdoor\"===e||\"/casdoor/\"===e||e.indexOf(\"/login\")>=0?\"http://139.196.254.8/zhongchou/\":e}function scrollToDiv';" "Direct Casdoor login returns to the staging crowd frontend instead of an empty Casdoor root"
-require_rendered "sub_filter 'null!==t&&\"\"!==t?window.location.href=t:c.goToLink(\"/\")' 't&&\"\"!==t&&\"/\"!==t&&\"/casdoor\"!==t&&\"/casdoor/\"!==t&&t.indexOf(\"/login\")<0?window.location.href=t:window.location.href=\"http://139.196.254.8/zhongchou/\"';" "Existing Casdoor sessions return to the staging crowd frontend instead of the empty Casdoor root"
-require_rendered "sub_filter '</body>' '<script>(function(){var target=\"http://139.196.254.8/zhongchou/\";setInterval(function(){if(window.location.pathname===\"/casdoor/\"){window.location.replace(target)}},500)})()</script></body>';" "Casdoor SPA root redirects to the staging crowd frontend after client-side navigation"
+require_rendered "sub_filter 'return null===e?\"/\":e}function scrollToDiv' 'return null===e?\"/casdoor/\":e}function scrollToDiv';" "Direct Casdoor login defaults to the Casdoor console root"
+require_rendered "sub_filter 'null!==t&&\"\"!==t?window.location.href=t:c.goToLink(\"/\")' 'null!==t&&\"\"!==t?window.location.href=t:c.goToLink(\"/casdoor/\")';" "Existing Casdoor sessions stay inside the Casdoor console"
+reject_rendered "window.location.replace(target)" "Casdoor console must not be forced to the crowd frontend"
 
 echo "nginx staging render verification passed"

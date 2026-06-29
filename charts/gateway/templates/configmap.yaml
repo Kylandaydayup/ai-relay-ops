@@ -120,10 +120,6 @@ data:
             return 301 {{ .Values.casdoor.basePathSlash }};
         }
 
-        location = {{ .Values.casdoor.basePathSlash }} {
-            return 302 {{ .Values.casdoor.defaultLoginPath }};
-        }
-
         location = {{ .Values.casdoor.basePathSlash }}login {
             return 302 {{ .Values.casdoor.defaultLoginPath }};
         }
@@ -146,7 +142,6 @@ data:
             proxy_set_header Accept-Encoding "";
             sub_filter_once off;
             sub_filter_types application/javascript text/css text/html;
-            sub_filter '</body>' '<script>(function(){var target="{{ .Values.casdoor.defaultAfterLoginUrl }}";setInterval(function(){if(window.location.pathname==="{{ .Values.casdoor.basePathSlash }}"){window.location.replace(target)}},500)})()</script></body>';
             sub_filter '="/static/' '="{{ .Values.casdoor.basePath }}/static/';
             sub_filter '="/api/' '="{{ .Values.casdoor.basePath }}/api/';
             sub_filter '"/static/' '"{{ .Values.casdoor.basePath }}/static/';
@@ -155,8 +150,8 @@ data:
             sub_filter "'/api/" "'{{ .Values.casdoor.basePath }}/api/";
             sub_filter '__webpack_require__.p="/"' '__webpack_require__.p="{{ .Values.casdoor.basePathSlash }}"';
             sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:"{{ .Values.casdoor.basePath }}",children:';
-            sub_filter 'return null===e?"/":e}function scrollToDiv' 'return!e||"/"===e||"{{ .Values.casdoor.basePath }}"===e||"{{ .Values.casdoor.basePathSlash }}"===e||e.indexOf("/login")>=0?"{{ .Values.casdoor.defaultAfterLoginUrl }}":e}function scrollToDiv';
-            sub_filter 'null!==t&&""!==t?window.location.href=t:c.goToLink("/")' 't&&""!==t&&"/"!==t&&"{{ .Values.casdoor.basePath }}"!==t&&"{{ .Values.casdoor.basePathSlash }}"!==t&&t.indexOf("/login")<0?window.location.href=t:window.location.href="{{ .Values.casdoor.defaultAfterLoginUrl }}"';
+            sub_filter 'return null===e?"/":e}function scrollToDiv' 'return null===e?"{{ .Values.casdoor.basePathSlash }}":e}function scrollToDiv';
+            sub_filter 'null!==t&&""!==t?window.location.href=t:c.goToLink("/")' 'null!==t&&""!==t?window.location.href=t:c.goToLink("{{ .Values.casdoor.basePathSlash }}")';
         }
 
         location {{ .Values.broker.internalPath }} {

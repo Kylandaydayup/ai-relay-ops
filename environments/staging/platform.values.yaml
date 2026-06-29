@@ -200,4 +200,3 @@ gateway:
     basePath: /casdoor
     basePathSlash: /casdoor/
     defaultLoginPath: /casdoor/login/edream
-    defaultAfterLoginUrl: http://139.196.254.8/zhongchou/
