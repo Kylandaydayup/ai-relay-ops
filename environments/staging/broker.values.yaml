@@ -22,13 +22,13 @@ ingress:
 env:
   AUTH_MODE: jwt
   BROKER_ENVIRONMENT: staging
-  BROKER_PUBLIC_URL: http://139.196.254.8/broker
+  BROKER_PUBLIC_BASE_URL: http://139.196.254.8/broker
   CASDOOR_ISSUER: http://139.196.254.8/casdoor
   CASDOOR_AUDIENCE: ec5db9ad91bb6b87656b
   CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
   NEWAPI_BASE_URL: http://relay-new-api:3000
   NEWAPI_ADMIN_USER_ID: "1"
-  BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
+  BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"]},{"id":"DeepSeek-V3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"DeepSeek-R1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]},{"id":"Kimi/Kimi-K2.7-code","name":"Kimi K2.7 Code","capabilities":["text"]},{"id":"Qwen2.5-72B-Instruct-64K","name":"Qwen2.5 72B Instruct 64K","capabilities":["text"]}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]}],"multimodal":[{"id":"qwen/qwen3-vl-plus","name":"Qwen3 VL Plus","capabilities":["text","image-input"]}],"embedding":[{"id":"bge-m3","name":"BGE M3","capabilities":["embedding"]}]}'
 
 secret:
   create: true

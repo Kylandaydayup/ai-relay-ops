@@ -22,7 +22,7 @@ ingress:
 
 env:
   AUTH_MODE: jwt
-  BROKER_PUBLIC_URL: ""
+  BROKER_PUBLIC_BASE_URL: ""
   CASDOOR_ISSUER: ""
   CASDOOR_AUDIENCE: arcreel
   CASDOOR_JWKS_URL: ""

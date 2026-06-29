@@ -62,6 +62,26 @@ scripts/deploy-staging-139.sh
 GATEWAY_HOST_NETWORK=true ALLOW_HOST_GATEWAY_CUTOVER=1 scripts/deploy-staging-139.sh
 ```
 
+## Broker Public API
+
+ArcReel Desktop should talk to Broker as an OpenAI-compatible provider:
+
+```text
+Base URL = BROKER_PUBLIC_BASE_URL + /v1
+API Key = Broker-issued brk_... key
+```
+
+Do not expose temporary deployment words such as `k8s` in user-facing API URLs. `BROKER_PUBLIC_BASE_URL` is the canonical public base used by Broker when issuing keys, and it can be configured per environment:
+
+```yaml
+env:
+  BROKER_PUBLIC_BASE_URL: https://broker.example.com
+  NEWAPI_BASE_URL: http://relay-new-api:3000
+  BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
+```
+
+`NEWAPI_BASE_URL` is internal service-to-service routing. Users and ArcReel Desktop should never receive the managed new-api `sk-...` key.
+
 ## Production Migration Principle
 
 Production is still the source of truth and must not be changed during staging validation. Use 139 to prove the integrated stack first, including database migration, OAuth callback rewrites, Nginx routing, and smoke checks. Move production only after the same scripts are proven repeatable and a rollback window is agreed.
