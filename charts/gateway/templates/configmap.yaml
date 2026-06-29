@@ -85,6 +85,19 @@ data:
             proxy_set_header X-Forwarded-Proto $scheme;
         }
 
+        location = / {
+            return 302 {{ .Values.edreamcrowd.basePathSlash }};
+        }
+
+        location {{ .Values.edreamcrowd.basePathSlash }} {
+            proxy_pass {{ .Values.upstreams.edreamFrontend }}/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
         location / {
             proxy_pass {{ .Values.upstreams.edreamFrontend }}/;
             proxy_http_version 1.1;
@@ -116,6 +129,19 @@ data:
             return 302 {{ .Values.download.redirectUrl }};
         }
 
+        {{- if .Values.domains.auth }}
+        location = {{ .Values.casdoor.basePath }} {
+            return 302 http://{{ .Values.domains.auth }}/;
+        }
+
+        location = {{ .Values.casdoor.basePathSlash }} {
+            return 302 http://{{ .Values.domains.auth }}/;
+        }
+
+        location ~ ^{{ .Values.casdoor.basePathSlash }}(.*)$ {
+            return 302 http://{{ .Values.domains.auth }}/$1;
+        }
+        {{- else }}
         location = {{ .Values.casdoor.basePath }} {
             return 301 {{ .Values.casdoor.basePathSlash }};
         }
@@ -153,6 +179,7 @@ data:
             sub_filter 'return null===e?"/":e}function scrollToDiv' 'return null===e?"{{ .Values.casdoor.basePathSlash }}":e}function scrollToDiv';
             sub_filter 'null!==t&&""!==t?window.location.href=t:c.goToLink("/")' 'null!==t&&""!==t?window.location.href=t:c.goToLink("{{ .Values.casdoor.basePathSlash }}")';
         }
+        {{- end }}
 
         location {{ .Values.broker.internalPath }} {
             return 404;

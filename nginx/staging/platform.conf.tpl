@@ -80,6 +80,19 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 
+    location = / {
+        return 302 ${ZHONGCHOU_BASE_PATH_SLASH};
+    }
+
+    location ${ZHONGCHOU_BASE_PATH_SLASH} {
+        proxy_pass ${EDREAMCROWD_FRONTEND_UPSTREAM}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
     location / {
         proxy_pass ${EDREAMCROWD_FRONTEND_UPSTREAM}/;
         proxy_http_version 1.1;
@@ -118,41 +131,15 @@ server {
     }
 
     location = ${CASDOOR_BASE_PATH} {
-        return 301 ${CASDOOR_BASE_PATH_SLASH};
+        return 302 http://${AUTH_SERVER_NAME}/;
     }
 
-    location = ${CASDOOR_BASE_PATH_SLASH}login {
-        return 302 ${CASDOOR_DEFAULT_LOGIN_PATH};
+    location = ${CASDOOR_BASE_PATH_SLASH} {
+        return 302 http://${AUTH_SERVER_NAME}/;
     }
 
-    location ${CASDOOR_BASE_PATH_SLASH} {
-        proxy_pass ${CASDOOR_UPSTREAM}/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_set_header X-Forwarded-Prefix ${CASDOOR_BASE_PATH};
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_read_timeout 300s;
-        proxy_send_timeout 300s;
-        proxy_redirect ~^(/.*)$ ${CASDOOR_BASE_PATH}$1;
-        proxy_hide_header ETag;
-        add_header Cache-Control "no-store";
-        proxy_set_header Accept-Encoding "";
-        sub_filter_once off;
-        sub_filter_types application/javascript text/css;
-        sub_filter '="/static/' '="${CASDOOR_BASE_PATH}/static/';
-        sub_filter '="/api/' '="${CASDOOR_BASE_PATH}/api/';
-        sub_filter '"/static/' '"${CASDOOR_BASE_PATH}/static/';
-        sub_filter '"/api/' '"${CASDOOR_BASE_PATH}/api/';
-        sub_filter "'/static/" "'${CASDOOR_BASE_PATH}/static/";
-        sub_filter "'/api/" "'${CASDOOR_BASE_PATH}/api/";
-        sub_filter '__webpack_require__.p="/"' '__webpack_require__.p="${CASDOOR_BASE_PATH_SLASH}"';
-        sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:"${CASDOOR_BASE_PATH}",children:';
-        sub_filter 'return null===e?"/":e}function scrollToDiv' 'return null===e?"${CASDOOR_BASE_PATH_SLASH}":e}function scrollToDiv';
-        sub_filter 'null!==t&&""!==t?window.location.href=t:c.goToLink("/")' 'null!==t&&""!==t?window.location.href=t:c.goToLink("${CASDOOR_BASE_PATH_SLASH}")';
+    location ~ ^${CASDOOR_BASE_PATH_SLASH}(.*)$ {
+        return 302 http://${AUTH_SERVER_NAME}/$1;
     }
 
     location ${BROKER_INTERNAL_PATH} {

@@ -54,10 +54,15 @@ require_optional_server "$ARCREEL_SERVER_NAME" "ArcReel domain is reserved until
 if [ -n "$ARCREEL_SERVER_NAME" ]; then
   require_rendered "return 404 \"$ARCREEL_SERVER_NAME is not configured yet\\n\";" "ArcReel domain does not accidentally expose new-api"
 fi
-require_rendered "sub_filter '__webpack_require__.p=\"/\"' '__webpack_require__.p=\"/casdoor/\"';" "Casdoor chunks load from the /casdoor/ base path"
-require_rendered "sub_filter '(0,Qe.jsx)(br.VK,{children:' '(0,Qe.jsx)(br.VK,{basename:\"/casdoor\",children:';" "Casdoor React router is mounted under /casdoor"
-require_rendered "sub_filter 'return null===e?\"/\":e}function scrollToDiv' 'return null===e?\"/casdoor/\":e}function scrollToDiv';" "Direct Casdoor login defaults to the Casdoor console root"
-require_rendered "sub_filter 'null!==t&&\"\"!==t?window.location.href=t:c.goToLink(\"/\")' 'null!==t&&\"\"!==t?window.location.href=t:c.goToLink(\"/casdoor/\")';" "Existing Casdoor sessions stay inside the Casdoor console"
 reject_rendered "window.location.replace(target)" "Casdoor console must not be forced to the crowd frontend"
+reject_rendered "__webpack_require__.p=\"/casdoor/\"" "staging should use the auth domain instead of rewriting Casdoor under /casdoor"
+
+if [ -n "$AUTH_SERVER_NAME" ]; then
+  require_rendered "return 302 http://$AUTH_SERVER_NAME/\$1;" "IP /casdoor paths are delegated to the auth domain"
+fi
+if [ -n "$ZHONGCHOU_SERVER_NAME" ]; then
+  require_rendered "server_name $ZHONGCHOU_SERVER_NAME;" "crowdfunding domain server exists"
+  require_rendered "return 302 ${ZHONGCHOU_BASE_PATH_SLASH};" "crowdfunding domain root opens the packaged /zhongchou app"
+fi
 
 echo "nginx staging render verification passed"
