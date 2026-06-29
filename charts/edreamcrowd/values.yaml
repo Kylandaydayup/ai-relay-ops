@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: ""
+instanceOverride: ""
 
 backend:
   replicaCount: 1

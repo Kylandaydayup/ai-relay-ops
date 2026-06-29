@@ -1,0 +1,31 @@
+apiVersion: v2
+name: platform
+description: Umbrella chart for the integrated AI relay validation platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+dependencies:
+  - name: postgres
+    version: 0.1.0
+    repository: file://../postgres
+    condition: postgres.enabled
+  - name: new-api
+    version: 0.1.0
+    repository: file://../new-api
+    condition: new-api.enabled
+  - name: broker
+    version: 0.1.5
+    repository: file://../broker
+    condition: broker.enabled
+  - name: casdoor
+    version: 0.1.0
+    repository: file://../casdoor
+    condition: casdoor.enabled
+  - name: edreamcrowd
+    version: 0.1.1
+    repository: file://../edreamcrowd
+    condition: edreamcrowd.enabled
+  - name: gateway
+    version: 0.1.0
+    repository: file://../gateway
+    condition: gateway.enabled

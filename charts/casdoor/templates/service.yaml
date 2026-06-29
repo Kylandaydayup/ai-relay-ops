@@ -16,4 +16,4 @@ spec:
       {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "casdoor.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ include "casdoor.instance" . }}

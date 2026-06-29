@@ -13,4 +13,4 @@ spec:
       protocol: TCP
   selector:
     app.kubernetes.io/name: {{ include "postgres.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ include "postgres.instance" . }}

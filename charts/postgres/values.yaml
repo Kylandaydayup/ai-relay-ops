@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: ""
+instanceOverride: ""
 
 image:
   repository: postgres

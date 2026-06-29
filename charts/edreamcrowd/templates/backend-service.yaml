@@ -17,5 +17,5 @@ spec:
       {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "edreamcrowd.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ include "edreamcrowd.instance" . }}
     app.kubernetes.io/component: backend

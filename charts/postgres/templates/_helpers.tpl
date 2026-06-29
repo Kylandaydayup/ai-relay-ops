@@ -12,9 +12,13 @@
 
 {{- define "postgres.labels" -}}
 app.kubernetes.io/name: {{ include "postgres.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/instance: {{ include "postgres.instance" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- end -}}
+
+{{- define "postgres.instance" -}}
+{{- default .Release.Name .Values.instanceOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "postgres.secretName" -}}

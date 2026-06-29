@@ -16,4 +16,4 @@ spec:
       {{- end }}
   selector:
     app.kubernetes.io/name: {{ include "new-api.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ include "new-api.instance" . }}
