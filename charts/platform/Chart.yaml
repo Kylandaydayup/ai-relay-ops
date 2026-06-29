@@ -14,7 +14,7 @@ dependencies:
     repository: file://../new-api
     condition: new-api.enabled
   - name: broker
-    version: 0.1.5
+    version: 0.1.9
     repository: file://../broker
     condition: broker.enabled
   - name: casdoor

@@ -3,7 +3,7 @@ instanceOverride: ""
 
 image:
   repository: ai-relay-broker
-  tag: v0.1.5
+  tag: v0.1.9
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -28,6 +28,8 @@ env:
   CASDOOR_JWKS_URL: ""
   NEWAPI_BASE_URL: ""
   NEWAPI_ADMIN_USER_ID: "1"
+  NEWAPI_MANAGED_TOKEN_GROUP: default
+  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "20"
   BROKER_MODEL_CATALOG_JSON: ""
 
 probes:
