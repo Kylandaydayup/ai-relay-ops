@@ -6,6 +6,106 @@ metadata:
     {{- include "gateway.labels" . | nindent 4 }}
 data:
   default.conf: |
+    {{- if .Values.domains.api }}
+    server {
+        listen {{ .Values.containerPorts.http }};
+        server_name {{ .Values.domains.api }};
+
+        client_max_body_size {{ .Values.clientMaxBodySize }};
+
+        location / {
+            proxy_pass {{ .Values.upstreams.newApi }};
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    {{- end }}
+    {{- if .Values.domains.auth }}
+    server {
+        listen {{ .Values.containerPorts.http }};
+        server_name {{ .Values.domains.auth }};
+
+        client_max_body_size {{ .Values.clientMaxBodySize }};
+
+        location / {
+            proxy_pass {{ .Values.upstreams.casdoor }}/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+            proxy_read_timeout 300s;
+            proxy_send_timeout 300s;
+        }
+    }
+
+    {{- end }}
+    {{- if .Values.domains.zhongchou }}
+    server {
+        listen {{ .Values.containerPorts.http }};
+        server_name {{ .Values.domains.zhongchou }};
+
+        client_max_body_size {{ .Values.clientMaxBodySize }};
+
+        location {{ .Values.edreamcrowd.apiPath }} {
+            proxy_pass {{ .Values.upstreams.edreamBackend }}{{ .Values.edreamcrowd.apiPath }};
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            client_max_body_size {{ .Values.clientMaxBodySize }};
+        }
+
+        location {{ .Values.edreamcrowd.oauthPath }} {
+            proxy_pass {{ .Values.upstreams.edreamBackend }}{{ .Values.edreamcrowd.oauthPath }};
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location {{ .Values.edreamcrowd.loginOauthPath }} {
+            proxy_pass {{ .Values.upstreams.edreamBackend }}{{ .Values.edreamcrowd.loginOauthPath }};
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location / {
+            proxy_pass {{ .Values.upstreams.edreamFrontend }}/;
+            proxy_http_version 1.1;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+
+    {{- end }}
+    {{- if .Values.domains.arcreel }}
+    server {
+        listen {{ .Values.containerPorts.http }};
+        server_name {{ .Values.domains.arcreel }};
+
+        default_type text/plain;
+        return 404 "{{ .Values.domains.arcreel }} is not configured yet\n";
+    }
+
+    {{- end }}
     server {
         listen {{ .Values.containerPorts.http }} default_server;
         server_name {{ include "gateway.serverNames" . }};

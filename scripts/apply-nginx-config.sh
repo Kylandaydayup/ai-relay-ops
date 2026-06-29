@@ -23,4 +23,16 @@ if [ -n "$available_file" ]; then
 fi
 
 nginx -t
-systemctl reload nginx
+if systemctl is-active --quiet nginx; then
+  systemctl reload nginx
+elif nginx -s reload; then
+  :
+else
+  masters="$(ps -eo pid=,cmd= | awk '/nginx: master process/ {print $1}')"
+  if [ -z "$masters" ]; then
+    echo "nginx is not active and no nginx master process was found" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC2086
+  kill -HUP $masters
+fi

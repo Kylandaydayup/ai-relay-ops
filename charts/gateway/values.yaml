@@ -3,6 +3,12 @@ fullnameOverride: ""
 
 replicaCount: 1
 
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
 image:
   repository: nginx
   tag: alpine
@@ -28,6 +34,12 @@ service:
 
 serverNames:
   - _
+
+domains:
+  api: ""
+  auth: ""
+  zhongchou: ""
+  arcreel: ""
 
 clientMaxBodySize: 500m
 

@@ -1,3 +1,107 @@
+#@if API_SERVER_NAME
+server {
+    listen ${HTTP_LISTEN_PORT};
+    listen [::]:${HTTP_LISTEN_PORT};
+    server_name ${API_SERVER_NAME};
+
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+
+    location / {
+        proxy_pass ${ROOT_NEWAPI_UPSTREAM};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}
+#@endif
+
+#@if AUTH_SERVER_NAME
+server {
+    listen ${HTTP_LISTEN_PORT};
+    listen [::]:${HTTP_LISTEN_PORT};
+    server_name ${AUTH_SERVER_NAME};
+
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+
+    location / {
+        proxy_pass ${CASDOOR_UPSTREAM}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_read_timeout 300s;
+        proxy_send_timeout 300s;
+    }
+}
+#@endif
+
+#@if ZHONGCHOU_SERVER_NAME
+server {
+    listen ${HTTP_LISTEN_PORT};
+    listen [::]:${HTTP_LISTEN_PORT};
+    server_name ${ZHONGCHOU_SERVER_NAME};
+
+    client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+
+    location ${ZHONGCHOU_API_PATH} {
+        proxy_pass ${EDREAMCROWD_BACKEND_UPSTREAM}${ZHONGCHOU_API_PATH};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size ${CLIENT_MAX_BODY_SIZE};
+    }
+
+    location ${OAUTH_PATH} {
+        proxy_pass ${EDREAMCROWD_BACKEND_UPSTREAM}${OAUTH_PATH};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location ${LOGIN_OAUTH_PATH} {
+        proxy_pass ${EDREAMCROWD_BACKEND_UPSTREAM}${LOGIN_OAUTH_PATH};
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass ${EDREAMCROWD_FRONTEND_UPSTREAM}/;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+#@endif
+
+#@if ARCREEL_SERVER_NAME
+server {
+    listen ${HTTP_LISTEN_PORT};
+    listen [::]:${HTTP_LISTEN_PORT};
+    server_name ${ARCREEL_SERVER_NAME};
+
+    default_type text/plain;
+    return 404 "${ARCREEL_SERVER_NAME} is not configured yet\n";
+}
+#@endif
+
 server {
     listen ${HTTP_LISTEN_PORT} default_server;
     listen [::]:${HTTP_LISTEN_PORT} default_server;

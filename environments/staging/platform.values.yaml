@@ -1,5 +1,11 @@
 fullnameOverride: platform
 
+# Required staging endpoint configuration:
+# - Public IP is used by serverNames and the public callback URLs below.
+# - NodePort values are the host-level ports exposed by the k8s services.
+# - Keep gateway.hostNetwork enabled on the single-node 139 environment so it can bind 80/3000 directly.
+# Optional domain routing lives under gateway.domains; leave a domain value empty to disable that route.
+
 databaseInit:
   enabled: true
   postgres:
@@ -162,8 +168,13 @@ gateway:
     tag: staging-139-v5
     pullPolicy: IfNotPresent
   hostNetwork:
-    enabled: false
+    enabled: true
     dnsPolicy: ClusterFirstWithHostNet
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
   service:
     enabled: false
   serverNames:
@@ -171,6 +182,11 @@ gateway:
     - 139.196.254.8
     - nexushome.top
     - www.nexushome.top
+  domains:
+    api: api.nexushome.top
+    auth: auth.nexushome.top
+    zhongchou: zhongchou.nexushome.top
+    arcreel: arcreel.nexushome.top
   upstreams:
     newApi: http://relay-new-api:3000
     broker: http://relay-broker:8080
