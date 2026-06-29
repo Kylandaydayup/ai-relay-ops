@@ -131,15 +131,15 @@ data:
 
         {{- if .Values.domains.auth }}
         location = {{ .Values.casdoor.basePath }} {
-            return 302 http://{{ .Values.domains.auth }}/;
+            return 302 http://{{ .Values.domains.auth }}/$is_args$args;
         }
 
         location = {{ .Values.casdoor.basePathSlash }} {
-            return 302 http://{{ .Values.domains.auth }}/;
+            return 302 http://{{ .Values.domains.auth }}/$is_args$args;
         }
 
         location ~ ^{{ .Values.casdoor.basePathSlash }}(.*)$ {
-            return 302 http://{{ .Values.domains.auth }}/$1;
+            return 302 http://{{ .Values.domains.auth }}/$1$is_args$args;
         }
         {{- else }}
         location = {{ .Values.casdoor.basePath }} {

@@ -58,7 +58,7 @@ reject_rendered "window.location.replace(target)" "Casdoor console must not be f
 reject_rendered "__webpack_require__.p=\"/casdoor/\"" "staging should use the auth domain instead of rewriting Casdoor under /casdoor"
 
 if [ -n "$AUTH_SERVER_NAME" ]; then
-  require_rendered "return 302 http://$AUTH_SERVER_NAME/\$1;" "IP /casdoor paths are delegated to the auth domain"
+  require_rendered "return 302 http://$AUTH_SERVER_NAME/\$1\$is_args\$args;" "IP /casdoor paths are delegated to the auth domain with OAuth query preserved"
 fi
 if [ -n "$ZHONGCHOU_SERVER_NAME" ]; then
   require_rendered "server_name $ZHONGCHOU_SERVER_NAME;" "crowdfunding domain server exists"

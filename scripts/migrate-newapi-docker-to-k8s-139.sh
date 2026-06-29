@@ -11,8 +11,9 @@ docker_postgres_container="${DOCKER_NEWAPI_POSTGRES_CONTAINER:-new-api-postgres}
 docker_database="${DOCKER_NEWAPI_DATABASE:-new_api}"
 docker_user="${DOCKER_NEWAPI_USER:-newapi}"
 backup_root="${BACKUP_ROOT:-/root/platform-backups}"
-public_base_url="${PUBLIC_BASE_URL:-http://139.196.254.8}"
-casdoor_public_base_url="${CASDOOR_PUBLIC_BASE_URL:-${public_base_url}/casdoor}"
+public_base_url="${PUBLIC_BASE_URL:-http://api.nexushome.top}"
+compat_public_base_urls="${NEWAPI_EXTRA_PUBLIC_BASE_URLS:-http://139.196.254.8}"
+casdoor_public_base_url="${CASDOOR_PUBLIC_BASE_URL:-http://auth.nexushome.top}"
 newapi_oauth_slug="${NEWAPI_CASDOOR_OAUTH_SLUG:-ymmjc}"
 timestamp="$(date +%Y%m%d%H%M%S)"
 backup_dir="${backup_root}/newapi-docker-to-k8s-${timestamp}"
@@ -92,8 +93,30 @@ if [ -z "$newapi_client_id" ] || [ -z "$newapi_client_secret" ]; then
   exit 1
 fi
 
-newapi_redirect_uri="${public_base_url}/oauth/${newapi_oauth_slug}"
-newapi_redirect_uris="[\"${newapi_redirect_uri}\"]"
+newapi_redirect_uris="$(
+  PUBLIC_BASE_URL="${public_base_url%/}" \
+  NEWAPI_EXTRA_PUBLIC_BASE_URLS="$compat_public_base_urls" \
+  NEWAPI_CASDOOR_OAUTH_SLUG="$newapi_oauth_slug" \
+  python3 - <<'PY'
+import json
+import os
+
+slug = os.environ["NEWAPI_CASDOOR_OAUTH_SLUG"]
+urls = [os.environ["PUBLIC_BASE_URL"]]
+urls.extend(u.strip() for u in os.environ.get("NEWAPI_EXTRA_PUBLIC_BASE_URLS", "").split(","))
+
+seen = []
+for url in urls:
+    url = url.rstrip("/")
+    if not url:
+        continue
+    redirect_uri = f"{url}/oauth/{slug}"
+    if redirect_uri not in seen:
+        seen.append(redirect_uri)
+
+print(json.dumps(seen, ensure_ascii=False))
+PY
+)"
 
 echo "ensuring Casdoor application for new-api OAuth callback..."
 kubectl exec -i -n "$namespace" "$postgres_pod" -- \

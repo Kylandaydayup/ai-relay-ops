@@ -131,15 +131,15 @@ server {
     }
 
     location = ${CASDOOR_BASE_PATH} {
-        return 302 http://${AUTH_SERVER_NAME}/;
+        return 302 http://${AUTH_SERVER_NAME}/$is_args$args;
     }
 
     location = ${CASDOOR_BASE_PATH_SLASH} {
-        return 302 http://${AUTH_SERVER_NAME}/;
+        return 302 http://${AUTH_SERVER_NAME}/$is_args$args;
     }
 
     location ~ ^${CASDOOR_BASE_PATH_SLASH}(.*)$ {
-        return 302 http://${AUTH_SERVER_NAME}/$1;
+        return 302 http://${AUTH_SERVER_NAME}/$1$is_args$args;
     }
 
     location ${BROKER_INTERNAL_PATH} {
