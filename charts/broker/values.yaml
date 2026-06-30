@@ -3,7 +3,7 @@ instanceOverride: ""
 
 image:
   repository: ai-relay-broker
-  tag: v0.1.10
+  tag: v0.1.12
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -29,7 +29,7 @@ env:
   NEWAPI_BASE_URL: ""
   NEWAPI_ADMIN_USER_ID: "1"
   NEWAPI_MANAGED_TOKEN_GROUP: default
-  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "20"
+  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "500000"
   BROKER_MODEL_CATALOG_JSON: ""
   MODEL_RECHARGE_CASDOOR_OWNER: edream
   MODEL_RECHARGE_PRODUCT_NAME: model-quota
