@@ -133,6 +133,7 @@ required_config NEWAPI_SESSION_SECRET "$newapi_session_secret"
 required_config NEWAPI_CRYPTO_SECRET "$newapi_crypto_secret"
 
 broker_database_url="${BROKER_DATABASE_URL:-postgresql+psycopg://broker:${broker_db_password}@platform-postgres:5432/broker_db}"
+broker_casdoor_database_url="${BROKER_CASDOOR_DATABASE_URL:-postgresql+psycopg://casdoor:${casdoor_db_password}@platform-postgres:5432/casdoor}"
 broker_casdoor_client_secret="${BROKER_CASDOOR_CLIENT_SECRET:-$(secret_value_or_empty relay-broker-secret CASDOOR_CLIENT_SECRET)}"
 broker_newapi_token="${BROKER_NEWAPI_ADMIN_ACCESS_TOKEN:-${NEWAPI_ADMIN_ACCESS_TOKEN:-$(secret_value_or_empty relay-broker-secret NEWAPI_ADMIN_ACCESS_TOKEN)}}"
 broker_internal_api_key="${BROKER_INTERNAL_API_KEY:-$(secret_value_or_empty relay-broker-secret INTERNAL_API_KEY)}"
@@ -184,6 +185,7 @@ helm upgrade --install "$release" charts/platform \
   --set-string broker.secret.CASDOOR_CLIENT_SECRET="$broker_casdoor_client_secret" \
   --set-string broker.secret.NEWAPI_ADMIN_ACCESS_TOKEN="$broker_newapi_token" \
   --set-string broker.secret.INTERNAL_API_KEY="$broker_internal_api_key" \
+  --set-string broker.secret.CASDOOR_DATABASE_URL="$broker_casdoor_database_url" \
   --set-string edreamcrowd.backend.secret.SPRING_DATASOURCE_PASSWORD="$edream_db_password" \
   --set-string edreamcrowd.backend.secret.JASYPT_ENCRYPTOR_PASSWORD="$edream_jasypt_password" \
   --set-string edreamcrowd.backend.secret.CASDOOR_ACCESS_KEY="$edream_casdoor_access_key" \

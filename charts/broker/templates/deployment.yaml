@@ -54,6 +54,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "broker.secretName" . }}
                   key: INTERNAL_API_KEY
+            - name: CASDOOR_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: CASDOOR_DATABASE_URL
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}

@@ -3,7 +3,7 @@ instanceOverride: ""
 
 image:
   repository: ai-relay-broker
-  tag: v0.1.9
+  tag: v0.1.10
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -31,6 +31,18 @@ env:
   NEWAPI_MANAGED_TOKEN_GROUP: default
   NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "20"
   BROKER_MODEL_CATALOG_JSON: ""
+  MODEL_RECHARGE_CASDOOR_OWNER: edream
+  MODEL_RECHARGE_PRODUCT_NAME: model-quota
+  MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
+  MODEL_RECHARGE_PLAN_CODE: model-quota
+  MODEL_RECHARGE_WALLET_GROUP: all
+  MODEL_RECHARGE_QUOTA_PER_CNY: "1"
+
+modelRechargeSync:
+  enabled: false
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
 
 probes:
   readiness:
@@ -49,6 +61,7 @@ secret:
   CASDOOR_CLIENT_SECRET: ""
   NEWAPI_ADMIN_ACCESS_TOKEN: ""
   INTERNAL_API_KEY: ""
+  CASDOOR_DATABASE_URL: ""
 
 resources: {}
 

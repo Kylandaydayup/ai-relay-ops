@@ -71,7 +71,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: ai-relay-broker
-    tag: v0.1.9
+    tag: v0.1.10
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -89,12 +89,22 @@ broker:
     NEWAPI_MANAGED_TOKEN_GROUP: default
     NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "20"
     BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"]},{"id":"deepseek-v3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"deepseek-r1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]},{"id":"doubao-seedance-2.0","name":"Doubao Seedance 2.0 Raw","capabilities":["video"]},{"id":"doubao-seedance-2-0-260128","name":"Doubao Seedance 2.0 Upstream","capabilities":["video"]}]}'
+    MODEL_RECHARGE_CASDOOR_OWNER: edream
+    MODEL_RECHARGE_PRODUCT_NAME: model-quota
+    MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
+    MODEL_RECHARGE_PLAN_CODE: model-quota
+    MODEL_RECHARGE_WALLET_GROUP: all
+    MODEL_RECHARGE_QUOTA_PER_CNY: "1"
+  modelRechargeSync:
+    enabled: true
+    schedule: "*/1 * * * *"
   secret:
     create: true
     DATABASE_URL: ""
     CASDOOR_CLIENT_SECRET: ""
     NEWAPI_ADMIN_ACCESS_TOKEN: ""
     INTERNAL_API_KEY: ""
+    CASDOOR_DATABASE_URL: ""
 
 casdoor:
   enabled: true

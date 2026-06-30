@@ -30,6 +30,7 @@ require_file charts/gateway/values.yaml
 require_file charts/gateway/templates/configmap.yaml
 require_file charts/gateway/templates/deployment.yaml
 require_file charts/gateway/templates/service.yaml
+require_file charts/broker/templates/model-recharge-sync-cronjob.yaml
 require_file environments/staging/platform.values.yaml
 
 require_text charts/platform/Chart.yaml "repository: file://../gateway" "gateway dependency"
@@ -46,6 +47,10 @@ require_text charts/edreamcrowd/templates/_helpers.tpl "edreamcrowd.instance" "E
 require_text environments/staging/platform.values.yaml "instanceOverride: platform-db" "Postgres existing release selector preservation"
 require_text environments/staging/platform.values.yaml "instanceOverride: relay-new-api" "new-api existing release selector preservation"
 require_text environments/staging/platform.values.yaml "instanceOverride: relay-broker" "Broker existing release selector preservation"
+require_text charts/broker/templates/model-recharge-sync-cronjob.yaml "/internal/casdoor/model-recharge-orders/sync" "Broker model recharge order sync CronJob"
+require_text charts/broker/templates/deployment.yaml "CASDOOR_DATABASE_URL" "Broker Casdoor database URL secret"
+require_text scripts/deploy-platform-staging-139.sh "BROKER_CASDOOR_DATABASE_URL" "Broker Casdoor database URL deploy override"
+require_text environments/staging/platform.values.yaml "MODEL_RECHARGE_WALLET_GROUP: all" "shared model recharge wallet group"
 require_text environments/staging/platform.values.yaml "instanceOverride: casdoor" "Casdoor existing release selector preservation"
 require_text environments/staging/platform.values.yaml "instanceOverride: edreamcrowd" "EDreamCrowd existing release selector preservation"
 
