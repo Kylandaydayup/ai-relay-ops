@@ -22,7 +22,7 @@ ingress:
 env:
   AUTH_MODE: jwt
   BROKER_ENVIRONMENT: staging
-  BROKER_PUBLIC_BASE_URL: http://139.196.254.8/broker
+  BROKER_PUBLIC_BASE_URL: http://api.nexushome.top/broker
   CASDOOR_ISSUER: http://139.196.254.8/casdoor
   CASDOOR_AUDIENCE: ec5db9ad91bb6b87656b
   CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
