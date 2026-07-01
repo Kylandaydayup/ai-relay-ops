@@ -51,6 +51,10 @@ require_text charts/broker/templates/model-recharge-sync-cronjob.yaml "/internal
 require_text charts/broker/templates/deployment.yaml "CASDOOR_DATABASE_URL" "Broker Casdoor database URL secret"
 require_text scripts/deploy-platform-staging-139.sh "BROKER_CASDOOR_DATABASE_URL" "Broker Casdoor database URL deploy override"
 require_text environments/staging/platform.values.yaml "MODEL_RECHARGE_WALLET_GROUP: all" "shared model recharge wallet group"
+require_text environments/staging/platform.values.yaml "MODEL_RECHARGE_QUOTA_PER_CNY: \"100\"" "model recharge uses cent-precision quota units"
+require_text environments/staging/platform.values.yaml "NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: \"5000\"" "new-api managed token quota multiplier matches cent-precision broker units"
+require_text environments/staging/platform.values.yaml '{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max"' "long-context text model is first in broker catalog"
+require_text environments/staging/platform.values.yaml '"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"],"agent_default":true' "official agent uses long-context MiniMax model"
 require_text environments/staging/platform.values.yaml "instanceOverride: casdoor" "Casdoor existing release selector preservation"
 require_text environments/staging/platform.values.yaml "instanceOverride: edreamcrowd" "EDreamCrowd existing release selector preservation"
 

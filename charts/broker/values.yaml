@@ -3,7 +3,7 @@ instanceOverride: ""
 
 image:
   repository: ai-relay-broker
-  tag: v0.1.12
+  tag: v0.1.17
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -29,14 +29,14 @@ env:
   NEWAPI_BASE_URL: ""
   NEWAPI_ADMIN_USER_ID: "1"
   NEWAPI_MANAGED_TOKEN_GROUP: default
-  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "500000"
+  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
   BROKER_MODEL_CATALOG_JSON: ""
   MODEL_RECHARGE_CASDOOR_OWNER: edream
   MODEL_RECHARGE_PRODUCT_NAME: model-quota
   MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
   MODEL_RECHARGE_PLAN_CODE: model-quota
   MODEL_RECHARGE_WALLET_GROUP: all
-  MODEL_RECHARGE_QUOTA_PER_CNY: "1"
+  MODEL_RECHARGE_QUOTA_PER_CNY: "100"
 
 modelRechargeSync:
   enabled: false
