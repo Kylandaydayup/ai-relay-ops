@@ -21,6 +21,19 @@ spec:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/backend-secret.yaml") . | sha256sum }}
     spec:
+      {{- if .Values.backend.postgresWait.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.backend.postgresWait.image.repository }}:{{ .Values.backend.postgresWait.image.tag }}"
+          imagePullPolicy: {{ .Values.backend.postgresWait.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              until pg_isready -h {{ .Values.backend.postgresWait.host }} -p {{ .Values.backend.postgresWait.port }};
+              do echo waiting for postgres; sleep {{ .Values.backend.postgresWait.intervalSeconds }}; done
+      {{- end }}
       containers:
         - name: backend
           image: "{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}"

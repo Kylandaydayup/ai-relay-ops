@@ -21,6 +21,19 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.postgresWait.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.postgresWait.image.repository }}:{{ .Values.postgresWait.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresWait.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              until pg_isready -h {{ .Values.postgresWait.host }} -p {{ .Values.postgresWait.port }};
+              do echo waiting for postgres; sleep {{ .Values.postgresWait.intervalSeconds }}; done
+      {{- end }}
       containers:
         - name: broker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

@@ -14,6 +14,16 @@ containerPort: 8000
 env:
   RUNNING_IN_DOCKER: "true"
 
+postgresWait:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  host: platform-postgres
+  port: 5432
+  intervalSeconds: 2
+
 service:
   type: NodePort
   port: 8000

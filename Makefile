@@ -5,11 +5,14 @@ NAMESPACE ?= platform
 IMAGE_TAG ?=
 REVISION ?=
 HELM_ARGS ?=
+BUNDLE_ENV ?= template
+BUNDLE_DIR ?=
+BUILD_ENV_FILE ?= build/images.env
 
 CHART := charts/$(SERVICE)
 VALUES := environments/$(ENV)/$(SERVICE).values.yaml
 
-.PHONY: template lint install upgrade rollback uninstall status namespace verify-nginx-staging verify-platform-chart
+.PHONY: template lint install upgrade rollback uninstall status namespace verify-nginx-staging verify-platform-chart build-images package-bundle build-bundle install-bundle deploy-bundle
 
 namespace:
 	kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
@@ -46,3 +49,18 @@ verify-nginx-staging:
 
 verify-platform-chart:
 	scripts/verify-platform-chart.sh
+
+build-images:
+	scripts/build-platform-images.sh $(BUILD_ENV_FILE)
+
+package-bundle:
+	ENV_NAME=$(BUNDLE_ENV) BUNDLE_DIR="$(BUNDLE_DIR)" scripts/package-platform-bundle.sh
+
+build-bundle:
+	ENV_NAME=$(BUNDLE_ENV) BUILD_ENV_FILE=$(BUILD_ENV_FILE) BUNDLE_DIR="$(BUNDLE_DIR)" scripts/build-platform-bundle.sh
+
+install-bundle:
+	scripts/install-platform-bundle.sh
+
+deploy-bundle:
+	scripts/deploy-platform-bundle.sh

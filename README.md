@@ -27,6 +27,41 @@ make status ENV=prod
 make verify-platform-chart
 ```
 
+## Portable Bundle
+
+The portable flow has two separate steps:
+
+1. Build once: create a deployable bundle with charts and image tar files.
+2. Deploy once: copy the bundle to a server, edit `values/values.yaml`, then run one deploy command.
+
+The build step and deploy step are intentionally separate. Runtime environment
+settings belong to `values/values.yaml`; source repository and image-build
+settings belong to `build/images.env`.
+
+```text
+charts/ + values/values.yaml + images/*.tar + install scripts
+```
+
+One-click build:
+
+```bash
+cp build/images.env.example build/images.env
+vim build/images.env
+make build-bundle BUNDLE_ENV=template BUILD_ENV_FILE=build/images.env
+```
+
+One-click deploy on the target server:
+
+```bash
+tar -xzf platform-bundle-*.tar.gz
+cd platform-bundle-*
+vim values/values.yaml
+LOAD_IMAGES=true scripts/deploy-platform-bundle.sh
+```
+
+Later upgrades should only require changing image names or tags in
+`values/values.yaml` and rerunning `scripts/deploy-platform-bundle.sh`.
+
 ## Staging 139
 
 The 139 validation host runs the platform as one integrated Kubernetes-managed stack:

@@ -18,6 +18,19 @@ spec:
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
+      {{- if .Values.postgresWait.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.postgresWait.image.repository }}:{{ .Values.postgresWait.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresWait.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              until pg_isready -h {{ .Values.postgresWait.host }} -p {{ .Values.postgresWait.port }};
+              do echo waiting for postgres; sleep {{ .Values.postgresWait.intervalSeconds }}; done
+      {{- end }}
       containers:
         - name: casdoor
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

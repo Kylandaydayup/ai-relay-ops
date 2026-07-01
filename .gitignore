@@ -1,2 +1,5 @@
 charts/platform/Chart.lock
 charts/platform/charts/
+.build/
+dist/
+build/images.env
