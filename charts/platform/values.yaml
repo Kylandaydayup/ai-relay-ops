@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: platform
+namespace: platform
 
 databaseInit:
   enabled: true

@@ -40,8 +40,8 @@ cd platform-bundle-*
 vim values/values.yaml
 ```
 
-Replace all `CHANGE_ME_*` placeholders and update domains, public IP, image
-repositories, image tags, ports, and storage class if needed.
+Replace all `CHANGE_ME_*` placeholders and update `namespace`, domains, public
+IP, image repositories, image tags, ports, and storage class if needed.
 
 3. Run one deploy command. Set `LOAD_IMAGES=true` when the bundle includes
 `images/*.tar`.
@@ -59,6 +59,9 @@ scripts/deploy-platform-bundle.sh
 
 4. Upgrade later by changing only image names or tags in
 `values/values.yaml`, then running the same install command again.
+
+`NAMESPACE=...` can override the file for one run, but normal bundle installs
+should keep the namespace in top-level `namespace:` inside `values/values.yaml`.
 
 ```bash
 scripts/deploy-platform-bundle.sh
@@ -89,7 +92,11 @@ broker:
     BROKER_PUBLIC_BASE_URL: http://api.example.com/broker
     NEWAPI_BASE_URL: http://relay-new-api:3000
     NEWAPI_PUBLIC_BASE_URL: http://api.example.com
+    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","subscription":{"relayBrokerBaseUrl":"http://api.example.com/broker"},"whitelabel":{"presetProvider":{"mediaBaseUrl":"http://api.example.com/v1","agentMessagesUrl":"http://api.example.com"}}}'
 ```
 
-`NEWAPI_PUBLIC_BASE_URL` is returned to the Desktop as the hidden official
-provider base URL. `NEWAPI_BASE_URL` stays inside the cluster.
+`DESKTOP_PUBLIC_CONFIG_JSON` is returned by Broker from
+`/v1/public/desktop-config`. New Desktop packages read that runtime config before
+writing their local sidecar config, so bundle users can unpack, edit
+`values/values.yaml` for namespace/domains/public URLs, and deploy with one
+Helm command. `NEWAPI_BASE_URL` stays inside the cluster.

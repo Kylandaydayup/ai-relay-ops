@@ -3,7 +3,6 @@ set -euo pipefail
 
 bundle_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 release="${RELEASE:-platform}"
-namespace="${NAMESPACE:-platform}"
 values_file="${VALUES_FILE:-$bundle_root/values/values.yaml}"
 load_images="${LOAD_IMAGES:-false}"
 wait_rollout="${WAIT_ROLLOUT:-true}"
@@ -33,6 +32,23 @@ if grep -R "CHANGE_ME" "$values_file" >/dev/null 2>&1; then
   echo "values file still contains CHANGE_ME placeholders: $values_file" >&2
   exit 2
 fi
+
+read_values_namespace() {
+  awk '
+    /^[[:space:]]*#/ { next }
+    /^namespace:[[:space:]]*/ {
+      value = $0
+      sub(/^namespace:[[:space:]]*/, "", value)
+      gsub(/["'\'']/, "", value)
+      gsub(/[[:space:]]+$/, "", value)
+      print value
+      exit
+    }
+  ' "$values_file"
+}
+
+namespace="${NAMESPACE:-$(read_values_namespace)}"
+namespace="${namespace:-platform}"
 
 if [ "$load_images" = "true" ]; then
   "$bundle_root/scripts/load-platform-images.sh"

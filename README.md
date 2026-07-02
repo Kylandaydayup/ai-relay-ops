@@ -61,6 +61,8 @@ LOAD_IMAGES=true scripts/deploy-platform-bundle.sh
 
 Later upgrades should only require changing image names or tags in
 `values/values.yaml` and rerunning `scripts/deploy-platform-bundle.sh`.
+The deploy script reads the target namespace from top-level `namespace:` in
+`values/values.yaml`; `NAMESPACE=...` is still available as an explicit override.
 
 ## Staging 139
 
@@ -123,10 +125,18 @@ env:
   NEWAPI_BASE_URL: http://relay-new-api:3000
   NEWAPI_PUBLIC_BASE_URL: https://api.example.com
   BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
+  DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","subscription":{"relayBrokerBaseUrl":"https://broker.example.com"},"whitelabel":{"presetProvider":{"mediaBaseUrl":"https://api.example.com/v1","agentMessagesUrl":"https://api.example.com"}}}'
 ```
 
 `NEWAPI_BASE_URL` is internal service-to-service routing used by Broker to
 manage tokens and synchronize quota. Do not point Desktop clients at it.
+
+New Desktop packages fetch public official-provider config from
+`BROKER_PUBLIC_BASE_URL + /v1/public/desktop-config?brand=edream` at startup.
+Keep `DESKTOP_PUBLIC_CONFIG_JSON` in the environment values file as the single
+runtime source for Casdoor public URLs, Broker URL, new-api public URL, display
+name, and recharge links. The packaged Desktop keeps only a local fallback; the
+hidden new-api key is still issued per user by `/v1/me/official-provider`.
 
 ## Production Migration Principle
 

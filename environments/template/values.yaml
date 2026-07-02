@@ -1,4 +1,5 @@
 fullnameOverride: platform
+namespace: platform
 
 # Copy this file to environments/<env>/values.yaml and edit only this
 # file when deploying a new integrated platform environment.
@@ -87,6 +88,8 @@ broker:
     NEWAPI_MANAGED_TOKEN_GROUP: default
     NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
     BROKER_MODEL_CATALOG_JSON: '{"text":[],"image":[],"video":[]}'
+    DESKTOP_CONFIG_BRAND: edream
+    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://auth.example.com","clientIssuer":"http://auth.example.com","clientId":"CHANGE_ME_CASDOOR_CLIENT_ID","audience":["CHANGE_ME_CASDOOR_CLIENT_ID","http://auth.example.com"],"jwksUri":"http://auth.example.com/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.example.com/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.example.com/broker","modelRechargeUrl":"http://auth.example.com/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://api.example.com/v1","agentMessagesUrl":"http://api.example.com","agentApiKeyUrl":"http://auth.example.com/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
     MODEL_RECHARGE_CASDOOR_OWNER: edream
     MODEL_RECHARGE_PRODUCT_NAME: model-quota
     MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
