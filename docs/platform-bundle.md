@@ -80,3 +80,16 @@ zhongchou domain -> EDreamCrowd
 
 If `api.<domain>/broker/` is used as the Broker public URL, keep the gateway
 route for `/broker/` before the catch-all new-api route.
+
+For new Desktop official-provider packages, set:
+
+```yaml
+broker:
+  env:
+    BROKER_PUBLIC_BASE_URL: http://api.example.com/broker
+    NEWAPI_BASE_URL: http://relay-new-api:3000
+    NEWAPI_PUBLIC_BASE_URL: http://api.example.com
+```
+
+`NEWAPI_PUBLIC_BASE_URL` is returned to the Desktop as the hidden official
+provider base URL. `NEWAPI_BASE_URL` stays inside the cluster.

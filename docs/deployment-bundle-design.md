@@ -51,6 +51,8 @@ platform-bundle-<env>-<timestamp>/
 - Service、端口、存储类、资源规格。
 - 服务环境变量。
 - Secret 初始值或私有占位值。
+- Broker 的 `NEWAPI_PUBLIC_BASE_URL`，即桌面端官方供应商实际访问的
+  new-api 公网地址；`NEWAPI_BASE_URL` 仍然只用于集群内管理调用。
 
 各 chart 的 `templates/deployment.yaml`、`templates/statefulset.yaml`、
 `templates/service.yaml`、`templates/configmap.yaml`、`templates/secret.yaml`

@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   repository: ai-relay-broker
-  tag: v0.1.17
+  tag: staging-139-direct-newapi-20260702
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -27,6 +27,7 @@ env:
   CASDOOR_AUDIENCE: ec5db9ad91bb6b87656b
   CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
   NEWAPI_BASE_URL: http://relay-new-api:3000
+  NEWAPI_PUBLIC_BASE_URL: http://api.nexushome.top
   NEWAPI_ADMIN_USER_ID: "1"
   NEWAPI_MANAGED_TOKEN_GROUP: default
   NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"

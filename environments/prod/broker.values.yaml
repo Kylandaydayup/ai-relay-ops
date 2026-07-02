@@ -28,6 +28,7 @@ env:
   CASDOOR_AUDIENCE: arcreel
   CASDOOR_JWKS_URL: https://casdoor.example.com/.well-known/jwks
   NEWAPI_BASE_URL: https://new-api.example.com
+  NEWAPI_PUBLIC_BASE_URL: https://new-api.example.com
   NEWAPI_ADMIN_USER_ID: "1"
   BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"]},{"id":"DeepSeek-V3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"DeepSeek-R1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]},{"id":"Kimi/Kimi-K2.7-code","name":"Kimi K2.7 Code","capabilities":["text"]},{"id":"Qwen2.5-72B-Instruct-64K","name":"Qwen2.5 72B Instruct 64K","capabilities":["text"]}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]}],"multimodal":[{"id":"qwen/qwen3-vl-plus","name":"Qwen3 VL Plus","capabilities":["text","image-input"]}],"embedding":[{"id":"bge-m3","name":"BGE M3","capabilities":["embedding"]}]}'
 

@@ -97,25 +97,36 @@ scripts/deploy-staging-139.sh
 GATEWAY_HOST_NETWORK=true ALLOW_HOST_GATEWAY_CUTOVER=1 scripts/deploy-staging-139.sh
 ```
 
-## Broker Public API
+## Official Provider Public API
 
-ArcReel Desktop should talk to Broker as an OpenAI-compatible provider:
+New ArcReel/eDream Desktop packages use Broker as the control plane only. Broker
+issues a hidden managed new-api key, while the Desktop model provider talks to
+new-api directly:
 
 ```text
-Base URL = BROKER_PUBLIC_BASE_URL + /v1
-API Key = Broker-issued brk_... key
+Base URL = NEWAPI_PUBLIC_BASE_URL + /v1
+API Key = Broker-managed new-api sk_... / sk-... key
 ```
 
-Do not expose temporary deployment words such as `k8s` in user-facing API URLs. `BROKER_PUBLIC_BASE_URL` is the canonical public base used by Broker when issuing keys, and it can be configured per environment:
+Old Desktop packages can still use `BROKER_PUBLIC_BASE_URL + /v1` with a
+Broker-issued `brk_...` key. Keep both public URLs configured so old test
+packages remain compatible during rollout.
+
+Do not expose temporary deployment words such as `k8s` in user-facing API URLs.
+`NEWAPI_PUBLIC_BASE_URL` is the canonical public base returned to new Desktop
+packages. `BROKER_PUBLIC_BASE_URL` remains the canonical public base for Broker
+control APIs and old relay packages:
 
 ```yaml
 env:
   BROKER_PUBLIC_BASE_URL: https://broker.example.com
   NEWAPI_BASE_URL: http://relay-new-api:3000
+  NEWAPI_PUBLIC_BASE_URL: https://api.example.com
   BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
 ```
 
-`NEWAPI_BASE_URL` is internal service-to-service routing. Users and ArcReel Desktop should never receive the managed new-api `sk-...` key.
+`NEWAPI_BASE_URL` is internal service-to-service routing used by Broker to
+manage tokens and synchronize quota. Do not point Desktop clients at it.
 
 ## Production Migration Principle
 

@@ -82,6 +82,7 @@ broker:
     CASDOOR_AUDIENCE: CHANGE_ME_CASDOOR_CLIENT_ID
     CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
     NEWAPI_BASE_URL: http://relay-new-api:3000
+    NEWAPI_PUBLIC_BASE_URL: http://api.example.com
     NEWAPI_ADMIN_USER_ID: "1"
     NEWAPI_MANAGED_TOKEN_GROUP: default
     NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
