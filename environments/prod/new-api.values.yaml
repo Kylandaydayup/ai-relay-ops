@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: calciumion/new-api
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 3000
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: ""
+  hosts:
+    - host: new-api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+env:
+  TZ: Asia/Shanghai
+  NODE_NAME: relay-new-api-1
+
+secret:
+  create: true
+  SQL_DSN: postgresql://newapi:change-me@postgres:5432/newapi_db
+  REDIS_CONN_STRING: redis://redis:6379
+  SESSION_SECRET: change-me
+  CRYPTO_SECRET: change-me
+
+resources: {}

@@ -1,0 +1,103 @@
+{{- if .Values.databaseInit.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "platform.fullname" . }}-postgres-init-{{ .Release.Revision }}
+  labels:
+    {{- include "platform.labels" . | nindent 4 }}
+spec:
+  ttlSecondsAfterFinished: {{ .Values.databaseInit.ttlSecondsAfterFinished }}
+  template:
+    metadata:
+      labels:
+        {{- include "platform.labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: postgres-init
+          image: "{{ .Values.databaseInit.image.repository }}:{{ .Values.databaseInit.image.tag }}"
+          imagePullPolicy: {{ .Values.databaseInit.image.pullPolicy }}
+          env:
+            - name: PGHOST
+              value: {{ .Values.databaseInit.postgres.host | quote }}
+            - name: PGPORT
+              value: {{ .Values.databaseInit.postgres.port | quote }}
+            - name: PGUSER
+              value: {{ .Values.databaseInit.postgres.username | quote }}
+            - name: PGDATABASE
+              value: {{ .Values.databaseInit.postgres.database | quote }}
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  key: POSTGRES_PASSWORD
+            - name: CASDOOR_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  key: CASDOOR_DB_PASSWORD
+            - name: EDREAMCROWD_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  key: EDREAMCROWD_DB_PASSWORD
+            - name: NEWAPI_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  key: NEWAPI_DB_PASSWORD
+            - name: BROKER_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  key: BROKER_DB_PASSWORD
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              until pg_isready -h "$PGHOST" -p "$PGPORT" -U "$PGUSER"; do
+                sleep 2
+              done
+
+              psql \
+                -v ON_ERROR_STOP=1 \
+                -v casdoor_password="$CASDOOR_DB_PASSWORD" \
+                -v edreamcrowd_password="$EDREAMCROWD_DB_PASSWORD" \
+                -v newapi_password="$NEWAPI_DB_PASSWORD" \
+                -v broker_password="$BROKER_DB_PASSWORD" <<'SQL'
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', 'casdoor', :'casdoor_password')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'casdoor')\gexec
+              ALTER ROLE casdoor WITH LOGIN PASSWORD :'casdoor_password';
+
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', 'edreamcrowd', :'edreamcrowd_password')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'edreamcrowd')\gexec
+              ALTER ROLE edreamcrowd WITH LOGIN PASSWORD :'edreamcrowd_password';
+
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', 'newapi', :'newapi_password')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'newapi')\gexec
+              ALTER ROLE newapi WITH LOGIN PASSWORD :'newapi_password';
+
+              SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', 'broker', :'broker_password')
+              WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'broker')\gexec
+              ALTER ROLE broker WITH LOGIN PASSWORD :'broker_password';
+
+              SELECT 'CREATE DATABASE casdoor OWNER casdoor'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'casdoor')\gexec
+              SELECT 'CREATE DATABASE edreamcrowd OWNER edreamcrowd'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'edreamcrowd')\gexec
+              SELECT 'CREATE DATABASE newapi OWNER newapi'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'newapi')\gexec
+              SELECT 'CREATE DATABASE broker_db OWNER broker'
+              WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'broker_db')\gexec
+
+              ALTER DATABASE casdoor OWNER TO casdoor;
+              ALTER DATABASE edreamcrowd OWNER TO edreamcrowd;
+              ALTER DATABASE newapi OWNER TO newapi;
+              ALTER DATABASE broker_db OWNER TO broker;
+
+              GRANT ALL PRIVILEGES ON DATABASE casdoor TO casdoor;
+              GRANT ALL PRIVILEGES ON DATABASE edreamcrowd TO edreamcrowd;
+              GRANT ALL PRIVILEGES ON DATABASE newapi TO newapi;
+              GRANT ALL PRIVILEGES ON DATABASE broker_db TO broker;
+              SQL
+{{- end }}

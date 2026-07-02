@@ -1,0 +1,53 @@
+{{- if .Values.modelRechargeSync.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "broker.fullname" . }}-model-recharge-sync
+  labels:
+    {{- include "broker.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.modelRechargeSync.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.modelRechargeSync.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.modelRechargeSync.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: {{ include "broker.name" . }}
+            app.kubernetes.io/instance: {{ include "broker.instance" . }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: model-recharge-sync
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              env:
+                - name: INTERNAL_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "broker.secretName" . }}
+                      key: INTERNAL_API_KEY
+                - name: SYNC_URL
+                  value: "http://{{ include "broker.fullname" . }}:{{ .Values.service.port }}/internal/casdoor/model-recharge-orders/sync"
+              command:
+                - python3
+                - -c
+              args:
+                - |
+                  import os
+                  import urllib.request
+
+                  request = urllib.request.Request(
+                      os.environ["SYNC_URL"],
+                      data=b"{}",
+                      headers={
+                          "Content-Type": "application/json",
+                          "X-Internal-Token": os.environ["INTERNAL_API_KEY"],
+                      },
+                      method="POST",
+                  )
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                      print(response.status, response.read().decode("utf-8"))
+{{- end }}

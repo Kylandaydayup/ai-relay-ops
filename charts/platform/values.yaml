@@ -1,0 +1,40 @@
+nameOverride: ""
+fullnameOverride: platform
+namespace: platform
+
+databaseInit:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  ttlSecondsAfterFinished: 600
+  postgres:
+    host: platform-postgres
+    port: 5432
+    username: postgres
+    password: ""
+    database: postgres
+  rolePasswords:
+    casdoor: ""
+    edreamcrowd: ""
+    newapi: ""
+    broker: ""
+
+postgres:
+  enabled: true
+
+new-api:
+  enabled: true
+
+broker:
+  enabled: true
+
+casdoor:
+  enabled: true
+
+edreamcrowd:
+  enabled: true
+
+gateway:
+  enabled: true

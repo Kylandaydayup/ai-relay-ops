@@ -1,0 +1,33 @@
+nameOverride: ""
+fullnameOverride: ""
+instanceOverride: ""
+
+image:
+  repository: postgres
+  tag: 16-alpine
+  pullPolicy: IfNotPresent
+
+containerPort: 5432
+
+service:
+  type: ClusterIP
+  port: 5432
+
+auth:
+  database: postgres
+  username: postgres
+  password: ""
+
+persistence:
+  enabled: true
+  storageClassName: local-path
+  size: 8Gi
+  mountPath: /var/lib/postgresql/data
+  pgData: /var/lib/postgresql/data/pgdata
+
+probes:
+  readiness:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+resources: {}

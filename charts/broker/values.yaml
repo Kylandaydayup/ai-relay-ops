@@ -1,0 +1,81 @@
+replicaCount: 1
+instanceOverride: ""
+
+image:
+  repository: ai-relay-broker
+  tag: v0.1.17
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+  nodePort: null
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+env:
+  AUTH_MODE: jwt
+  BROKER_PUBLIC_BASE_URL: ""
+  CASDOOR_ISSUER: ""
+  CASDOOR_AUDIENCE: arcreel
+  CASDOOR_JWKS_URL: ""
+  NEWAPI_BASE_URL: ""
+  NEWAPI_PUBLIC_BASE_URL: ""
+  NEWAPI_ADMIN_USER_ID: "1"
+  NEWAPI_MANAGED_TOKEN_GROUP: default
+  NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
+  BROKER_MODEL_CATALOG_JSON: ""
+  DESKTOP_CONFIG_BRAND: edream
+  DESKTOP_PUBLIC_CONFIG_JSON: ""
+  MODEL_RECHARGE_CASDOOR_OWNER: edream
+  MODEL_RECHARGE_PRODUCT_NAME: model-quota
+  MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
+  MODEL_RECHARGE_PLAN_CODE: model-quota
+  MODEL_RECHARGE_WALLET_GROUP: all
+  MODEL_RECHARGE_QUOTA_PER_CNY: "100"
+
+postgresWait:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  host: platform-postgres
+  port: 5432
+  intervalSeconds: 2
+
+modelRechargeSync:
+  enabled: false
+  schedule: "*/1 * * * *"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+probes:
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 20
+
+secret:
+  create: true
+  name: ""
+  DATABASE_URL: ""
+  CASDOOR_CLIENT_SECRET: ""
+  NEWAPI_ADMIN_ACCESS_TOKEN: ""
+  INTERNAL_API_KEY: ""
+  CASDOOR_DATABASE_URL: ""
+
+resources: {}
+
+podAnnotations: {}

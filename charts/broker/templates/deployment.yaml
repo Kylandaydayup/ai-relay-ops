@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "broker.fullname" . }}
+  labels:
+    {{- include "broker.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "broker.name" . }}
+      app.kubernetes.io/instance: {{ include "broker.instance" . }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "broker.name" . }}
+        app.kubernetes.io/instance: {{ include "broker.instance" . }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.postgresWait.enabled }}
+      initContainers:
+        - name: wait-for-postgres
+          image: "{{ .Values.postgresWait.image.repository }}:{{ .Values.postgresWait.image.tag }}"
+          imagePullPolicy: {{ .Values.postgresWait.image.pullPolicy }}
+          command:
+            - sh
+            - -c
+          args:
+            - >-
+              until pg_isready -h {{ .Values.postgresWait.host }} -p {{ .Values.postgresWait.port }};
+              do echo waiting for postgres; sleep {{ .Values.postgresWait.intervalSeconds }}; done
+      {{- end }}
+      containers:
+        - name: broker
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.containerPort }}
+              protocol: TCP
+          env:
+            {{- range $key, $value := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: DATABASE_URL
+            - name: CASDOOR_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: CASDOOR_CLIENT_SECRET
+            - name: NEWAPI_ADMIN_ACCESS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: NEWAPI_ADMIN_ACCESS_TOKEN
+            - name: INTERNAL_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: INTERNAL_API_KEY
+            - name: CASDOOR_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: CASDOOR_DATABASE_URL
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

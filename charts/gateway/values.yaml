@@ -1,0 +1,83 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
+image:
+  repository: nginx
+  tag: alpine
+  pullPolicy: IfNotPresent
+
+hostNetwork:
+  enabled: false
+  dnsPolicy: ClusterFirstWithHostNet
+
+containerPorts:
+  http: 80
+  compat: 3000
+
+service:
+  enabled: true
+  type: ClusterIP
+  ports:
+    http: 80
+    compat: 3000
+  nodePorts:
+    http: null
+    compat: null
+
+serverNames:
+  - _
+
+domains:
+  api: ""
+  auth: ""
+  zhongchou: ""
+  arcreel: ""
+
+clientMaxBodySize: 500m
+
+upstreams:
+  newApi: http://relay-new-api:3000
+  broker: http://relay-broker:8080
+  casdoor: http://casdoor:8000
+  edreamBackend: http://edreamcrowd-backend:8080
+  edreamFrontend: http://edreamcrowd-frontend:80
+
+download:
+  path: /downloads/edream/latest
+  redirectUrl: https://download.arc-reel.com/edream/latest
+
+casdoor:
+  basePath: /casdoor
+  basePathSlash: /casdoor/
+  defaultLoginPath: /casdoor/login/edream
+
+newApi:
+  basePath: /new-api
+  basePathSlash: /new-api/
+  oldBasePath: /new-api-k8s/
+
+broker:
+  basePath: /broker/
+  internalPath: /broker/internal/
+
+edreamcrowd:
+  basePath: /zhongchou
+  basePathSlash: /zhongchou/
+  apiPath: /zhongchou_api/
+  oauthPath: /oauth2/
+  loginOauthPath: /login/oauth2/
+
+compat:
+  enabled: true
+
+resources: {}
+
+podAnnotations: {}

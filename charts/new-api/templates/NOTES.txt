@@ -1,0 +1,7 @@
+new-api is deployed.
+
+Check status:
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Port forward:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "new-api.fullname" . }} 3000:{{ .Values.service.port }}

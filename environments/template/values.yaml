@@ -1,0 +1,216 @@
+fullnameOverride: platform
+namespace: platform
+
+# Copy this file to environments/<env>/values.yaml and edit only this
+# file when deploying a new integrated platform environment.
+
+databaseInit:
+  enabled: true
+  postgres:
+    host: platform-postgres
+    port: 5432
+    username: postgres
+    password: "CHANGE_ME_POSTGRES_PASSWORD"
+    database: postgres
+  rolePasswords:
+    casdoor: "CHANGE_ME_CASDOOR_DB_PASSWORD"
+    edreamcrowd: "CHANGE_ME_EDREAMCROWD_DB_PASSWORD"
+    newapi: "CHANGE_ME_NEWAPI_DB_PASSWORD"
+    broker: "CHANGE_ME_BROKER_DB_PASSWORD"
+
+postgres:
+  enabled: true
+  fullnameOverride: platform-postgres
+  instanceOverride: platform-db
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  auth:
+    database: postgres
+    username: postgres
+    password: "CHANGE_ME_POSTGRES_PASSWORD"
+  persistence:
+    enabled: true
+    storageClassName: local-path
+    size: 8Gi
+  resources:
+    requests:
+      memory: 512Mi
+      cpu: 100m
+    limits:
+      memory: 1536Mi
+
+new-api:
+  enabled: true
+  fullnameOverride: relay-new-api
+  instanceOverride: relay-new-api
+  image:
+    repository: calciumion/new-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
+    nodePort: null
+  env:
+    TZ: Asia/Shanghai
+    NODE_NAME: relay-new-api
+  secret:
+    create: true
+    SQL_DSN: "postgresql://newapi:CHANGE_ME_NEWAPI_DB_PASSWORD@platform-postgres:5432/newapi"
+    REDIS_CONN_STRING: ""
+    SESSION_SECRET: "CHANGE_ME_NEWAPI_SESSION_SECRET"
+    CRYPTO_SECRET: "CHANGE_ME_NEWAPI_CRYPTO_SECRET"
+
+broker:
+  enabled: true
+  fullnameOverride: relay-broker
+  instanceOverride: relay-broker
+  image:
+    repository: ai-relay-broker
+    tag: v0.1.17
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    nodePort: null
+  env:
+    AUTH_MODE: jwt
+    BROKER_ENVIRONMENT: demo
+    BROKER_PUBLIC_BASE_URL: http://api.example.com/broker
+    CASDOOR_ISSUER: http://auth.example.com
+    CASDOOR_AUDIENCE: CHANGE_ME_CASDOOR_CLIENT_ID
+    CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
+    NEWAPI_BASE_URL: http://relay-new-api:3000
+    NEWAPI_PUBLIC_BASE_URL: http://api.example.com
+    NEWAPI_ADMIN_USER_ID: "1"
+    NEWAPI_MANAGED_TOKEN_GROUP: default
+    NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
+    BROKER_MODEL_CATALOG_JSON: '{"text":[],"image":[],"video":[]}'
+    DESKTOP_CONFIG_BRAND: edream
+    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://auth.example.com","clientIssuer":"http://auth.example.com","clientId":"CHANGE_ME_CASDOOR_CLIENT_ID","audience":["CHANGE_ME_CASDOOR_CLIENT_ID","http://auth.example.com"],"jwksUri":"http://auth.example.com/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.example.com/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.example.com/broker","modelRechargeUrl":"http://auth.example.com/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://api.example.com/v1","agentMessagesUrl":"http://api.example.com","agentApiKeyUrl":"http://auth.example.com/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
+    MODEL_RECHARGE_CASDOOR_OWNER: edream
+    MODEL_RECHARGE_PRODUCT_NAME: model-quota
+    MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
+    MODEL_RECHARGE_PLAN_CODE: model-quota
+    MODEL_RECHARGE_WALLET_GROUP: all
+    MODEL_RECHARGE_QUOTA_PER_CNY: "100"
+  modelRechargeSync:
+    enabled: true
+    schedule: "*/1 * * * *"
+  secret:
+    create: true
+    DATABASE_URL: "postgresql+psycopg://broker:CHANGE_ME_BROKER_DB_PASSWORD@platform-postgres:5432/broker_db"
+    CASDOOR_CLIENT_SECRET: "CHANGE_ME_CASDOOR_CLIENT_SECRET"
+    NEWAPI_ADMIN_ACCESS_TOKEN: "CHANGE_ME_NEWAPI_ADMIN_ACCESS_TOKEN"
+    INTERNAL_API_KEY: "CHANGE_ME_BROKER_INTERNAL_API_KEY"
+    CASDOOR_DATABASE_URL: "postgresql+psycopg://casdoor:CHANGE_ME_CASDOOR_DB_PASSWORD@platform-postgres:5432/casdoor"
+
+casdoor:
+  enabled: true
+  fullnameOverride: casdoor
+  instanceOverride: casdoor
+  image:
+    repository: casbin/casdoor
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8000
+    nodePort: null
+  config:
+    httpPort: 8000
+    origin: http://auth.example.com
+    dataSourceName: "user=casdoor password=CHANGE_ME_CASDOOR_DB_PASSWORD host=platform-postgres port=5432 sslmode=disable dbname=casdoor"
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 50m
+    limits:
+      memory: 768Mi
+
+edreamcrowd:
+  enabled: true
+  fullnameOverride: edreamcrowd
+  instanceOverride: edreamcrowd
+  backend:
+    image:
+      repository: edreamcrowd-backend
+      tag: demo
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 8080
+      nodePort: null
+    env:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://platform-postgres:5432/edreamcrowd
+      SPRING_DATASOURCE_USERNAME: edreamcrowd
+      CASDOOR_ENDPOINT: http://auth.example.com
+      CASDOOR_APPLICATION_NAME: eDream_web
+      CASDOOR_ORGANIZATION_NAME: edream
+      APP_FRONTEND_URL: http://zhongchou.example.com/
+    secret:
+      SPRING_DATASOURCE_PASSWORD: "CHANGE_ME_EDREAMCROWD_DB_PASSWORD"
+      JASYPT_ENCRYPTOR_PASSWORD: "CHANGE_ME_EDREAMCROWD_JASYPT_PASSWORD"
+      CASDOOR_ACCESS_KEY: "CHANGE_ME_CASDOOR_ACCESS_KEY"
+      CASDOOR_ACCESS_SECRET: "CHANGE_ME_CASDOOR_ACCESS_SECRET"
+  frontend:
+    image:
+      repository: edreamcrowd-frontend
+      tag: demo
+      pullPolicy: IfNotPresent
+    service:
+      type: ClusterIP
+      port: 80
+      nodePort: null
+    runtimeConfig:
+      edreamDownloadUrl: https://download.example.com/edream/latest
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 50m
+    limits:
+      memory: 1024Mi
+
+gateway:
+  enabled: true
+  fullnameOverride: platform-gateway
+  image:
+    repository: nginx
+    tag: alpine
+    pullPolicy: IfNotPresent
+  hostNetwork:
+    enabled: true
+    dnsPolicy: ClusterFirstWithHostNet
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+  service:
+    enabled: false
+  serverNames:
+    - _
+    - CHANGE_ME_SERVER_IP
+    - api.example.com
+    - auth.example.com
+    - zhongchou.example.com
+  domains:
+    api: api.example.com
+    auth: auth.example.com
+    zhongchou: zhongchou.example.com
+    arcreel: arcreel.example.com
+  upstreams:
+    newApi: http://relay-new-api:3000
+    broker: http://relay-broker:8080
+    casdoor: http://casdoor:8000
+    edreamBackend: http://edreamcrowd-backend:8080
+    edreamFrontend: http://edreamcrowd-frontend:80
+  download:
+    path: /downloads/edream/latest
+    redirectUrl: https://download.example.com/edream/latest
+  casdoor:
+    basePath: /casdoor
+    basePathSlash: /casdoor/
+    defaultLoginPath: /casdoor/login/edream

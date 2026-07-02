@@ -1,0 +1,7 @@
+ai-relay-broker is deployed.
+
+Check status:
+  kubectl get pods -n {{ .Release.Namespace }} -l app.kubernetes.io/instance={{ .Release.Name }}
+
+Port forward:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/{{ include "broker.fullname" . }} 8080:{{ .Values.service.port }}

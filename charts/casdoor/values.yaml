@@ -1,0 +1,57 @@
+nameOverride: ""
+fullnameOverride: ""
+instanceOverride: ""
+
+replicaCount: 1
+
+image:
+  repository: casbin/casdoor
+  tag: latest
+  pullPolicy: IfNotPresent
+
+containerPort: 8000
+
+env:
+  RUNNING_IN_DOCKER: "true"
+
+postgresWait:
+  enabled: true
+  image:
+    repository: postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
+  host: platform-postgres
+  port: 5432
+  intervalSeconds: 2
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: 30082
+
+config:
+  httpPort: 8000
+  runMode: prod
+  copyRequestBody: true
+  driverName: postgres
+  origin: ""
+  dataSourceName: ""
+  authState: casdoor
+  staticBaseUrl: https://cdn.casbin.org
+  isDemoMode: false
+  batchSize: 100
+  enableErrorMask: false
+  enableGzip: true
+  radiusSecret: secret
+  quota: '{"organization": -1, "user": -1, "application": -1, "provider": -1}'
+  logConfig: '{"adapter": "console", "level": 4}'
+  initDataFile: ./init_data.json
+  frontendBaseDir: ../casdoor
+
+probes:
+  readiness:
+    path: /
+    initialDelaySeconds: 15
+    periodSeconds: 10
+
+resources: {}

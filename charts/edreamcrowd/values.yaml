@@ -1,0 +1,71 @@
+nameOverride: ""
+fullnameOverride: ""
+instanceOverride: ""
+
+backend:
+  replicaCount: 1
+  containerPort: 8080
+  image:
+    repository: edreamcrowd-backend
+    tag: prod-copy
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 8080
+    nodePort: 30083
+  env:
+    SPRING_DATASOURCE_URL: ""
+    SPRING_DATASOURCE_USERNAME: edreamcrowd
+    CASDOOR_ENDPOINT: ""
+    CASDOOR_APPLICATION_NAME: eDream_web
+    CASDOOR_ORGANIZATION_NAME: edream
+    APP_FRONTEND_URL: ""
+  postgresWait:
+    enabled: true
+    image:
+      repository: postgres
+      tag: 16-alpine
+      pullPolicy: IfNotPresent
+    host: platform-postgres
+    port: 5432
+    intervalSeconds: 2
+  probes:
+    readiness:
+      path: /zhongchou_api/public/campaigns
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      failureThreshold: 12
+  secret:
+    SPRING_DATASOURCE_PASSWORD: ""
+    JASYPT_ENCRYPTOR_PASSWORD: ""
+    CASDOOR_ACCESS_KEY: ""
+    CASDOOR_ACCESS_SECRET: ""
+
+frontend:
+  replicaCount: 1
+  containerPort: 80
+  image:
+    repository: edreamcrowd-frontend
+    tag: prod-copy
+    pullPolicy: IfNotPresent
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30084
+  nginx:
+    serverName: localhost
+    root: /usr/share/nginx/html
+    basePath: /zhongchou/
+    apiPath: /zhongchou_api/
+    oauthPath: /oauth2/
+    loginOauthPath: /login/oauth2/
+    clientMaxBodySize: 500m
+  runtimeConfig:
+    edreamDownloadUrl: https://download.arc-reel.com/edream/latest
+  probes:
+    readiness:
+      path: /
+      initialDelaySeconds: 5
+      periodSeconds: 10
+
+resources: {}
