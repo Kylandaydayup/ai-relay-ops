@@ -118,7 +118,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: ai-relay-broker
-    tag: staging-139-official-provider-catalog-20260705-e9e3182
+    tag: staging-139-official-provider-catalog-20260705-b43d960
     pullPolicy: IfNotPresent
   service:
     type: NodePort
