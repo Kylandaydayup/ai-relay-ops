@@ -17,6 +17,10 @@ dependencies:
     version: 0.1.0
     repository: file://../ai-provider-adapter
     condition: ai-provider-adapter.enabled
+  - name: newapi-compat-gateway
+    version: 0.1.0
+    repository: file://../newapi-compat-gateway
+    condition: newapi-compat-gateway.enabled
   - name: broker
     version: 0.1.12
     repository: file://../broker

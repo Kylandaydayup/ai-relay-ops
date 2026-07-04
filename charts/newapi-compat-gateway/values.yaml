@@ -1,0 +1,34 @@
+replicaCount: 1
+nameOverride: ""
+fullnameOverride: ""
+instanceOverride: ""
+
+image:
+  repository: newapi-compat-gateway
+  tag: demo
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 8080
+  nodePort: null
+
+env:
+  NEWAPI_UPSTREAM_BASE_URL: http://relay-new-api:3000
+  NEWAPI_COMPAT_REQUEST_TIMEOUT_SECONDS: "120"
+
+probes:
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 20
+
+resources: {}
+
+podAnnotations: {}

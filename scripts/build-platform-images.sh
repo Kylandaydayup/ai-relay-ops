@@ -152,6 +152,19 @@ if [ "${BUILD_AI_PROVIDER_ADAPTER:-true}" = "true" ]; then
   publish_or_save "$adapter_image"
 fi
 
+if [ "${BUILD_NEWAPI_COMPAT_GATEWAY:-true}" = "true" ]; then
+  compat_src="$(prepare_source \
+    newapi-compat-gateway \
+    "${NEWAPI_COMPAT_GATEWAY_REPO_URL:-${BROKER_REPO_URL:-}}" \
+    "${NEWAPI_COMPAT_GATEWAY_REPO_REF:-${BROKER_REPO_REF:-main}}" \
+    "${NEWAPI_COMPAT_GATEWAY_LOCAL_DIR:-${BROKER_LOCAL_DIR:-}}")"
+  compat_image="$(image_ref "${NEWAPI_COMPAT_GATEWAY_IMAGE_REPOSITORY:-newapi-compat-gateway}" "${NEWAPI_COMPAT_GATEWAY_IMAGE_TAG:-demo}")"
+  compat_context="$compat_src/${NEWAPI_COMPAT_GATEWAY_CONTEXT:-.}"
+  compat_dockerfile="$compat_context/${NEWAPI_COMPAT_GATEWAY_DOCKERFILE:-Dockerfile.newapi-compat-gateway}"
+  build_image "$compat_image" "$compat_dockerfile" "$compat_context" "${NEWAPI_COMPAT_GATEWAY_BUILD_ARGS:-}"
+  publish_or_save "$compat_image"
+fi
+
 if [ "${BUILD_EDREAMCROWD_FRONTEND:-true}" = "true" ] || [ "${BUILD_EDREAMCROWD_BACKEND:-true}" = "true" ]; then
   edream_src="$(prepare_source \
     edreamcrowd \

@@ -40,12 +40,14 @@ domains:
   auth: ""
   zhongchou: ""
   arcreel: ""
+  newapiCompat: ""
 
 clientMaxBodySize: 500m
 
 upstreams:
   newApi: http://relay-new-api:3000
   broker: http://relay-broker:8080
+  newapiCompat: http://newapi-compat-gateway:8080
   casdoor: http://casdoor:8000
   edreamBackend: http://edreamcrowd-backend:8080
   edreamFrontend: http://edreamcrowd-frontend:80

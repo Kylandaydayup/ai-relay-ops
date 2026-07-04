@@ -1,0 +1,6 @@
+apiVersion: v2
+name: newapi-compat-gateway
+description: Compatibility gateway for ArcReel clients using NewAPI endpoints
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

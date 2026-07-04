@@ -30,6 +30,9 @@ new-api:
 ai-provider-adapter:
   enabled: false
 
+newapi-compat-gateway:
+  enabled: false
+
 broker:
   enabled: true
 

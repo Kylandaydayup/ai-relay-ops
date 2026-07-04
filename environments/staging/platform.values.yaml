@@ -96,13 +96,29 @@ ai-provider-adapter:
     MOMA_SEEDANCE_API_KEY: ""
     KEYIYUN_API_KEY: ""
 
+newapi-compat-gateway:
+  enabled: true
+  fullnameOverride: newapi-compat-gateway
+  instanceOverride: newapi-compat-gateway
+  image:
+    repository: newapi-compat-gateway
+    tag: staging-139-newapi-compat-gateway-20260704-url-priority
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 8080
+    nodePort: null
+  env:
+    NEWAPI_UPSTREAM_BASE_URL: http://relay-new-api:3000
+    NEWAPI_COMPAT_REQUEST_TIMEOUT_SECONDS: "120"
+
 broker:
   enabled: true
   fullnameOverride: relay-broker
   instanceOverride: relay-broker
   image:
     repository: ai-relay-broker
-    tag: staging-139-catalog-pricing-20260704
+    tag: staging-139-newapi-compat-gateway-20260704
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -117,12 +133,13 @@ broker:
     CASDOOR_JWKS_URL: http://casdoor:8000/.well-known/jwks
     NEWAPI_BASE_URL: http://relay-new-api:3000
     NEWAPI_PUBLIC_BASE_URL: http://api.nexushome.top
+    OFFICIAL_PROVIDER_PUBLIC_BASE_URL: http://arcreel-api.nexushome.top
     NEWAPI_ADMIN_USER_ID: "1"
     NEWAPI_MANAGED_TOKEN_GROUP: default
     NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
     BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"],"agent_default":true},{"id":"deepseek-v3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"deepseek-r1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}],"image":[{"id":"qwen/qwen-image-2.0-pro","name":"Qwen Image 2.0 Pro","capabilities":["image"],"endpoint":"openai-images"}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]},{"id":"doubao-seedance-2.0","name":"Doubao Seedance 2.0 Raw","capabilities":["video"]},{"id":"doubao-seedance-2-0-260128","name":"Doubao Seedance 2.0 Upstream","capabilities":["video"]},{"id":"veo_3_1_fast","name":"Keyiyun VEO 3.1 Fast","capabilities":["video"]},{"id":"grok_video3","name":"Keyiyun Grok Video 3","capabilities":["video"]}]}'
     DESKTOP_CONFIG_BRAND: edream
-    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://139.196.254.8/casdoor","clientIssuer":"http://auth.nexushome.top","clientId":"ec5db9ad91bb6b87656b","audience":["ec5db9ad91bb6b87656b","http://139.196.254.8/casdoor"],"jwksUri":"http://auth.nexushome.top/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.nexushome.top/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.nexushome.top/broker","modelRechargeUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://api.nexushome.top/v1","agentMessagesUrl":"http://api.nexushome.top","agentApiKeyUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
+    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://139.196.254.8/casdoor","clientIssuer":"http://auth.nexushome.top","clientId":"ec5db9ad91bb6b87656b","audience":["ec5db9ad91bb6b87656b","http://139.196.254.8/casdoor"],"jwksUri":"http://auth.nexushome.top/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.nexushome.top/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.nexushome.top/broker","modelRechargeUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://arcreel-api.nexushome.top/v1","agentMessagesUrl":"http://api.nexushome.top","agentApiKeyUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
     MODEL_RECHARGE_CASDOOR_OWNER: edream
     MODEL_RECHARGE_PRODUCT_NAME: model-quota
     MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
@@ -230,12 +247,14 @@ gateway:
     - www.nexushome.top
   domains:
     api: api.nexushome.top
+    newapiCompat: arcreel-api.nexushome.top
     auth: auth.nexushome.top
     zhongchou: zhongchou.nexushome.top
     arcreel: arcreel.nexushome.top
   upstreams:
     newApi: http://relay-new-api:3000
     broker: http://relay-broker:8080
+    newapiCompat: http://newapi-compat-gateway:8080
     casdoor: http://casdoor:8000
     edreamBackend: http://edreamcrowd-backend:8080
     edreamFrontend: http://edreamcrowd-frontend:80
