@@ -45,6 +45,12 @@ def require(name: str, value: str) -> str:
     return value
 
 
+def _broker_newapi_database_url(sql_dsn: str) -> str:
+    if sql_dsn.startswith("postgresql://"):
+        return "postgresql+psycopg://" + sql_dsn.removeprefix("postgresql://")
+    return sql_dsn
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Materialize a platform values.yaml with secret values from an env file and existing Kubernetes Secrets."
@@ -146,6 +152,9 @@ def main() -> None:
     values["broker"]["secret"]["DATABASE_URL"] = broker_database_url
     values["broker"]["secret"]["CASDOOR_CLIENT_SECRET"] = broker_casdoor_client_secret
     values["broker"]["secret"]["NEWAPI_ADMIN_ACCESS_TOKEN"] = broker_newapi_token
+    values["broker"]["secret"]["NEWAPI_DATABASE_URL"] = _broker_newapi_database_url(newapi_sql_dsn)
+    values["broker"]["secret"]["NEWAPI_REDIS_CONN_STRING"] = newapi_redis
+    values["broker"]["secret"]["NEWAPI_CRYPTO_SECRET"] = newapi_crypto
     values["broker"]["secret"]["INTERNAL_API_KEY"] = broker_internal_key
     values["broker"]["secret"]["CASDOOR_DATABASE_URL"] = broker_casdoor_database_url
     if "ai-provider-adapter" in values:

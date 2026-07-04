@@ -192,6 +192,9 @@ helm upgrade --install "$release" charts/platform \
   --set-string broker.secret.DATABASE_URL="$broker_database_url" \
   --set-string broker.secret.CASDOOR_CLIENT_SECRET="$broker_casdoor_client_secret" \
   --set-string broker.secret.NEWAPI_ADMIN_ACCESS_TOKEN="$broker_newapi_token" \
+  --set-string broker.secret.NEWAPI_DATABASE_URL="${newapi_sql_dsn/postgresql:\/\//postgresql+psycopg:\/\/}" \
+  --set-string broker.secret.NEWAPI_REDIS_CONN_STRING="$newapi_redis_conn_string" \
+  --set-string broker.secret.NEWAPI_CRYPTO_SECRET="$newapi_crypto_secret" \
   --set-string broker.secret.INTERNAL_API_KEY="$broker_internal_api_key" \
   --set-string broker.secret.CASDOOR_DATABASE_URL="$broker_casdoor_database_url" \
   --set-string edreamcrowd.backend.secret.SPRING_DATASOURCE_PASSWORD="$edream_db_password" \

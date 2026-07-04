@@ -118,7 +118,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: ai-relay-broker
-    tag: staging-139-official-provider-catalog-20260705-b43d960
+    tag: staging-139-newapi-db-quota-20260705
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -154,6 +154,9 @@ broker:
     DATABASE_URL: ""
     CASDOOR_CLIENT_SECRET: ""
     NEWAPI_ADMIN_ACCESS_TOKEN: ""
+    NEWAPI_DATABASE_URL: ""
+    NEWAPI_REDIS_CONN_STRING: ""
+    NEWAPI_CRYPTO_SECRET: ""
     INTERNAL_API_KEY: ""
     CASDOOR_DATABASE_URL: ""
 

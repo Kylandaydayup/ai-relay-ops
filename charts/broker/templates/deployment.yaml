@@ -62,6 +62,21 @@ spec:
                 secretKeyRef:
                   name: {{ include "broker.secretName" . }}
                   key: NEWAPI_ADMIN_ACCESS_TOKEN
+            - name: NEWAPI_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: NEWAPI_DATABASE_URL
+            - name: NEWAPI_REDIS_CONN_STRING
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: NEWAPI_REDIS_CONN_STRING
+            - name: NEWAPI_CRYPTO_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "broker.secretName" . }}
+                  key: NEWAPI_CRYPTO_SECRET
             - name: INTERNAL_API_KEY
               valueFrom:
                 secretKeyRef:
