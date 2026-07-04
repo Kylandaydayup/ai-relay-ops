@@ -78,6 +78,9 @@ adopt_existing_resources() {
     deployment/relay-new-api
     service/relay-new-api
     secret/relay-new-api-secret
+    deployment/ai-provider-adapter
+    service/ai-provider-adapter
+    secret/ai-provider-adapter-secret
     deployment/relay-broker
     service/relay-broker
     secret/relay-broker-secret
@@ -142,6 +145,9 @@ if [ -z "$broker_newapi_token" ]; then
   broker_newapi_token="change-me"
 fi
 
+moma_seedance_api_key="${MOMA_SEEDANCE_API_KEY:-$(secret_value_or_empty ai-provider-adapter-secret MOMA_SEEDANCE_API_KEY)}"
+keyiyun_api_key="${KEYIYUN_API_KEY:-$(secret_value_or_empty ai-provider-adapter-secret KEYIYUN_API_KEY)}"
+
 edream_jasypt_password="${EDREAMCROWD_JASYPT_ENCRYPTOR_PASSWORD:-$(secret_value_or_empty edreamcrowd-backend-secret JASYPT_ENCRYPTOR_PASSWORD)}"
 edream_casdoor_access_key="${EDREAMCROWD_CASDOOR_ACCESS_KEY:-$(secret_value_or_empty edreamcrowd-backend-secret CASDOOR_ACCESS_KEY)}"
 edream_casdoor_access_secret="${EDREAMCROWD_CASDOOR_ACCESS_SECRET:-$(secret_value_or_empty edreamcrowd-backend-secret CASDOOR_ACCESS_SECRET)}"
@@ -181,6 +187,8 @@ helm upgrade --install "$release" charts/platform \
   --set-string new-api.secret.REDIS_CONN_STRING="$newapi_redis_conn_string" \
   --set-string new-api.secret.SESSION_SECRET="$newapi_session_secret" \
   --set-string new-api.secret.CRYPTO_SECRET="$newapi_crypto_secret" \
+  --set-string ai-provider-adapter.secret.MOMA_SEEDANCE_API_KEY="$moma_seedance_api_key" \
+  --set-string ai-provider-adapter.secret.KEYIYUN_API_KEY="$keyiyun_api_key" \
   --set-string broker.secret.DATABASE_URL="$broker_database_url" \
   --set-string broker.secret.CASDOOR_CLIENT_SECRET="$broker_casdoor_client_secret" \
   --set-string broker.secret.NEWAPI_ADMIN_ACCESS_TOKEN="$broker_newapi_token" \
@@ -197,6 +205,7 @@ postgres_init_job="${POSTGRES_INIT_JOB:-platform-postgres-init-${release_revisio
 kubectl wait --for=condition=complete "job/${postgres_init_job}" -n "$namespace" --timeout=180s || true
 kubectl rollout status statefulset/platform-postgres -n "$namespace" --timeout=240s
 kubectl rollout status deployment/relay-new-api -n "$namespace" --timeout=180s
+kubectl rollout status deployment/ai-provider-adapter -n "$namespace" --timeout=180s
 kubectl rollout status deployment/relay-broker -n "$namespace" --timeout=180s
 kubectl rollout status deployment/casdoor -n "$namespace" --timeout=180s
 kubectl rollout status deployment/edreamcrowd-backend -n "$namespace" --timeout=240s

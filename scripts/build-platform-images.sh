@@ -139,6 +139,19 @@ if [ "${BUILD_BROKER:-true}" = "true" ]; then
   publish_or_save "$broker_image"
 fi
 
+if [ "${BUILD_AI_PROVIDER_ADAPTER:-true}" = "true" ]; then
+  adapter_src="$(prepare_source \
+    ai-provider-adapter \
+    "${AI_PROVIDER_ADAPTER_REPO_URL:-}" \
+    "${AI_PROVIDER_ADAPTER_REPO_REF:-main}" \
+    "${AI_PROVIDER_ADAPTER_LOCAL_DIR:-}")"
+  adapter_image="$(image_ref "${AI_PROVIDER_ADAPTER_IMAGE_REPOSITORY:-ai-provider-adapter}" "${AI_PROVIDER_ADAPTER_IMAGE_TAG:-demo}")"
+  adapter_context="$adapter_src/${AI_PROVIDER_ADAPTER_CONTEXT:-.}"
+  adapter_dockerfile="$adapter_context/${AI_PROVIDER_ADAPTER_DOCKERFILE:-Dockerfile}"
+  build_image "$adapter_image" "$adapter_dockerfile" "$adapter_context" "${AI_PROVIDER_ADAPTER_BUILD_ARGS:-}"
+  publish_or_save "$adapter_image"
+fi
+
 if [ "${BUILD_EDREAMCROWD_FRONTEND:-true}" = "true" ] || [ "${BUILD_EDREAMCROWD_BACKEND:-true}" = "true" ]; then
   edream_src="$(prepare_source \
     edreamcrowd \

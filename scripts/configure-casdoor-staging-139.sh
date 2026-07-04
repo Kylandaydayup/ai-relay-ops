@@ -5,6 +5,7 @@ namespace="${NAMESPACE:-platform}"
 kubeconfig="${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
 postgres_pod="${POSTGRES_POD:-platform-postgres-0}"
 public_base_url="${PUBLIC_BASE_URL:-http://139.196.254.8}"
+crowd_public_base_urls="${CROWD_PUBLIC_BASE_URLS:-http://zhongchou.nexushome.top,https://zhongchou.nexushome.top}"
 crowd_base_path="${CROWD_BASE_PATH:-/zhongchou/}"
 crowd_api_callback_path="${CROWD_API_CALLBACK_PATH:-/zhongchou_api/login/oauth2/code/casdoor}"
 root_callback_path="${ROOT_CALLBACK_PATH:-/login/oauth2/code/casdoor}"
@@ -12,7 +13,35 @@ root_callback_path="${ROOT_CALLBACK_PATH:-/login/oauth2/code/casdoor}"
 export KUBECONFIG="$kubeconfig"
 
 crowd_homepage_url="${public_base_url}${crowd_base_path}"
-redirect_uris="[\"${public_base_url}${root_callback_path}\",\"${public_base_url}${crowd_api_callback_path}\"]"
+redirect_uris="$(
+  PUBLIC_BASE_URL="$public_base_url" \
+  CROWD_PUBLIC_BASE_URLS="$crowd_public_base_urls" \
+  ROOT_CALLBACK_PATH="$root_callback_path" \
+  CROWD_API_CALLBACK_PATH="$crowd_api_callback_path" \
+  python3 - <<'PY'
+import json
+import os
+
+def trim(url):
+    return (url or "").rstrip("/")
+
+uris = []
+public_base_url = trim(os.environ["PUBLIC_BASE_URL"])
+root_callback_path = os.environ["ROOT_CALLBACK_PATH"]
+crowd_api_callback_path = os.environ["CROWD_API_CALLBACK_PATH"]
+
+if public_base_url:
+    uris.append(f"{public_base_url}{root_callback_path}")
+    uris.append(f"{public_base_url}{crowd_api_callback_path}")
+
+for base_url in os.environ.get("CROWD_PUBLIC_BASE_URLS", "").split(","):
+    base_url = trim(base_url)
+    if base_url:
+        uris.append(f"{base_url}{crowd_api_callback_path}")
+
+print(json.dumps(list(dict.fromkeys(uris)), ensure_ascii=False))
+PY
+)"
 
 echo "configuring Casdoor staging application URLs..."
 kubectl exec -i -n "$namespace" "$postgres_pod" -- \

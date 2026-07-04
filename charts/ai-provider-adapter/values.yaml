@@ -1,0 +1,49 @@
+replicaCount: 1
+nameOverride: ""
+fullnameOverride: ai-provider-adapter
+instanceOverride: ""
+
+image:
+  repository: ai-provider-adapter
+  tag: staging-139
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+  nodePort: null
+
+env:
+  AI_PROVIDER_ADAPTER_DEFAULT_PROVIDER: moma_seedance
+  AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
+  MOMA_SEEDANCE_BASE_URL: https://zhenze-huhehaote.cmecloud.cn
+  MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
+  MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: "false"
+  KEYIYUN_BASE_URL: https://zcbservice.aizfw.cn/kyyReactApiServer
+  KEYIYUN_VEO_CREATE_PATH: /v1/veo/videos
+  KEYIYUN_GROK_CREATE_PATH: /v1/grok/videos
+  LOG_LEVEL: ERROR
+  TOP_LOGGER_LEVEL: ERROR
+  TASK_LOGGER_LEVEL: ERROR
+
+secret:
+  create: true
+  name: ""
+  MOMA_SEEDANCE_API_KEY: ""
+  KEYIYUN_API_KEY: ""
+
+probes:
+  readiness:
+    path: /readyz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+  liveness:
+    path: /healthz
+    initialDelaySeconds: 10
+    periodSeconds: 20
+
+resources: {}
+
+podAnnotations: {}

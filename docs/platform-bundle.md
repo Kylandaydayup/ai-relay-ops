@@ -1,7 +1,8 @@
 # Platform Bundle
 
 This bundle contains the Helm chart tree, one editable environment values file,
-and an optional `images/` directory with Docker image tar files.
+and an optional `images/` directory with Docker image tar files. The chart tree
+includes `ai-provider-adapter` for New API video provider compatibility.
 
 ## Directory Layout
 
@@ -83,6 +84,21 @@ zhongchou domain -> EDreamCrowd
 
 If `api.<domain>/broker/` is used as the Broker public URL, keep the gateway
 route for `/broker/` before the catch-all new-api route.
+
+## AI Provider Adapter
+
+When `ai-provider-adapter.enabled=true`, New API video channels should use the
+adapter service as their `base_url`:
+
+```text
+http://ai-provider-adapter.platform.svc.cluster.local
+```
+
+Provider upstream URLs and optional secret-backed API keys live under the
+`ai-provider-adapter` values block. The image is built from the broker repo
+using `Dockerfile.ai-provider-adapter`. Leave `MOMA_SEEDANCE_API_KEY` and
+`KEYIYUN_API_KEY` blank to forward the existing New API channel key to the
+upstream through the adapter.
 
 For new Desktop official-provider packages, set:
 

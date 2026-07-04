@@ -46,6 +46,8 @@ cp "$values_file" "$bundle_dir/values/values.yaml"
 cp scripts/load-platform-images.sh "$bundle_dir/scripts/load-platform-images.sh"
 cp scripts/install-platform-bundle.sh "$bundle_dir/scripts/install-platform-bundle.sh"
 cp scripts/deploy-platform-bundle.sh "$bundle_dir/scripts/deploy-platform-bundle.sh"
+cp scripts/configure-newapi-provider-adapter-139.sh "$bundle_dir/scripts/configure-newapi-provider-adapter-139.sh"
+cp scripts/verify-newapi-provider-adapter-139.sh "$bundle_dir/scripts/verify-newapi-provider-adapter-139.sh"
 cp docs/platform-bundle.md "$bundle_dir/README.md"
 chmod +x "$bundle_dir/scripts/"*.sh
 

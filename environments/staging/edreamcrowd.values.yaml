@@ -13,10 +13,10 @@ backend:
   env:
     SPRING_DATASOURCE_URL: jdbc:postgresql://platform-postgres:5432/edreamcrowd
     SPRING_DATASOURCE_USERNAME: edreamcrowd
-    CASDOOR_ENDPOINT: http://139.196.254.8/casdoor
+    CASDOOR_ENDPOINT: http://auth.nexushome.top
     CASDOOR_APPLICATION_NAME: eDream_web
     CASDOOR_ORGANIZATION_NAME: edream
-    APP_FRONTEND_URL: http://139.196.254.8/zhongchou/
+    APP_FRONTEND_URL: http://zhongchou.nexushome.top/zhongchou/
   secret:
     SPRING_DATASOURCE_PASSWORD: ""
     JASYPT_ENCRYPTOR_PASSWORD: ""

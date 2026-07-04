@@ -66,6 +66,7 @@ helm upgrade --install "$release" "$bundle_root/charts/platform" \
 if [ "$wait_rollout" = "true" ]; then
   kubectl rollout status statefulset/platform-postgres -n "$namespace" --timeout=240s || true
   kubectl rollout status deployment/relay-new-api -n "$namespace" --timeout=180s || true
+  kubectl rollout status deployment/ai-provider-adapter -n "$namespace" --timeout=180s || true
   kubectl rollout status deployment/relay-broker -n "$namespace" --timeout=180s || true
   kubectl rollout status deployment/casdoor -n "$namespace" --timeout=180s || true
   kubectl rollout status deployment/edreamcrowd-backend -n "$namespace" --timeout=240s || true

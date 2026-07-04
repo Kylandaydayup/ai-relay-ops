@@ -6,6 +6,12 @@ new-api:
 
 broker:
   image: ai-relay-broker
-  tag: v0.1.5
+  tag: staging-139-catalog-pricing-20260704
   chart_version: 0.1.5
+  git_commit: pending
+
+ai-provider-adapter:
+  image: ai-provider-adapter
+  tag: staging-139-provider-adapter-20260704-mapping-fix
+  chart_version: 0.1.0
   git_commit: pending

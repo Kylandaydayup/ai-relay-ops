@@ -110,6 +110,12 @@ def main() -> None:
         "BROKER_INTERNAL_API_KEY",
         env.get("BROKER_INTERNAL_API_KEY") or secret("relay-broker-secret", "INTERNAL_API_KEY"),
     )
+    moma_seedance_api_key = env.get("MOMA_SEEDANCE_API_KEY") or secret(
+        "ai-provider-adapter-secret", "MOMA_SEEDANCE_API_KEY"
+    )
+    keyiyun_api_key = env.get("KEYIYUN_API_KEY") or secret(
+        "ai-provider-adapter-secret", "KEYIYUN_API_KEY"
+    )
 
     edream_jasypt = require(
         "EDREAMCROWD_JASYPT_ENCRYPTOR_PASSWORD",
@@ -142,6 +148,9 @@ def main() -> None:
     values["broker"]["secret"]["NEWAPI_ADMIN_ACCESS_TOKEN"] = broker_newapi_token
     values["broker"]["secret"]["INTERNAL_API_KEY"] = broker_internal_key
     values["broker"]["secret"]["CASDOOR_DATABASE_URL"] = broker_casdoor_database_url
+    if "ai-provider-adapter" in values:
+        values["ai-provider-adapter"]["secret"]["MOMA_SEEDANCE_API_KEY"] = moma_seedance_api_key
+        values["ai-provider-adapter"]["secret"]["KEYIYUN_API_KEY"] = keyiyun_api_key
     values["edreamcrowd"]["backend"]["secret"]["SPRING_DATASOURCE_PASSWORD"] = edream_db_password
     values["edreamcrowd"]["backend"]["secret"]["JASYPT_ENCRYPTOR_PASSWORD"] = edream_jasypt
     values["edreamcrowd"]["backend"]["secret"]["CASDOOR_ACCESS_KEY"] = edream_casdoor_access_key

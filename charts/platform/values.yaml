@@ -27,6 +27,9 @@ postgres:
 new-api:
   enabled: true
 
+ai-provider-adapter:
+  enabled: false
+
 broker:
   enabled: true
 
