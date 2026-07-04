@@ -6,9 +6,9 @@ new-api:
 
 broker:
   image: ai-relay-broker
-  tag: staging-139-newapi-compat-gateway-20260704
+  tag: staging-139-official-provider-catalog-20260705-e9e3182
   chart_version: 0.1.5
-  git_commit: pending
+  git_commit: e9e31823eba6edcb8a2446a5499b5f2b5214710b
 
 ai-provider-adapter:
   image: ai-provider-adapter
