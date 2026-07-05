@@ -11,7 +11,7 @@ keyiyun_source_channel_id="${KEYIYUN_SOURCE_CHANNEL_ID:-6}"
 keyiyun_veo_channel_name="${KEYIYUN_VEO_ADAPTER_CHANNEL_NAME:-Keyiyun VEO via Adapter}"
 keyiyun_grok_channel_name="${KEYIYUN_GROK_ADAPTER_CHANNEL_NAME:-Keyiyun Grok via Adapter}"
 keyiyun_veo_model="${KEYIYUN_VEO_MODEL:-veo_3_1_fast}"
-keyiyun_grok_model="${KEYIYUN_GROK_MODEL:-grok_video3}"
+keyiyun_grok_model="${KEYIYUN_GROK_MODEL:-grok_video3,grok_video3_pro}"
 
 export KUBECONFIG="$kubeconfig"
 
@@ -61,7 +61,16 @@ require_count \
 
 require_count \
   "Keyiyun Grok model ability check" \
-  "SELECT count(*) FROM abilities WHERE model = '${keyiyun_grok_model}' AND channel_id IN (SELECT id FROM channels WHERE name = '${keyiyun_grok_channel_name}');" \
-  "1"
+  "WITH expected AS (SELECT btrim(model) AS model FROM unnest(string_to_array('${keyiyun_grok_model}', ',')) AS model WHERE btrim(model) <> '') SELECT count(*) FROM expected e WHERE EXISTS (SELECT 1 FROM abilities a WHERE a.model = e.model AND a.channel_id IN (SELECT id FROM channels WHERE name = '${keyiyun_grok_channel_name}'));" \
+  "$(python3 - <<PY
+models = [item.strip() for item in "${keyiyun_grok_model}".split(",") if item.strip()]
+print(len(models))
+PY
+)"
+
+require_count \
+  "Keyiyun Grok non-adapter abilities disabled check" \
+  "WITH expected AS (SELECT btrim(model) AS model FROM unnest(string_to_array('${keyiyun_grok_model}', ',')) AS model WHERE btrim(model) <> '') SELECT count(*) FROM abilities a JOIN expected e ON a.model = e.model WHERE a.enabled = true AND a.channel_id NOT IN (SELECT id FROM channels WHERE name = '${keyiyun_grok_channel_name}');" \
+  "0"
 
 echo "new-api provider adapter channel verification passed"

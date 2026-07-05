@@ -22,6 +22,17 @@ require_text() {
   fi
 }
 
+forbid_text() {
+  local path=$1
+  local forbidden=$2
+  local description=$3
+  if grep -Fq "$forbidden" "$repo_root/$path"; then
+    echo "unexpected $description in $path" >&2
+    echo "forbidden: $forbidden" >&2
+    exit 1
+  fi
+}
+
 require_file charts/platform/Chart.yaml
 require_file charts/platform/values.yaml
 require_file charts/platform/templates/postgres-init-job.yaml
@@ -59,6 +70,8 @@ require_text versions.lock.yaml "ai-provider-adapter" "AI provider adapter versi
 require_text docs/platform-bundle.md "ai-provider-adapter" "AI provider adapter bundle docs"
 require_text charts/platform/templates/postgres-init-job.yaml "CREATE DATABASE" "database bootstrap job"
 require_text charts/platform/templates/postgres-init-job.yaml "broker_db" "broker database bootstrap"
+require_text charts/new-api/templates/pvc.yaml '"helm.sh/resource-policy": keep' "new-api data PVC keep policy"
+require_text charts/postgres/templates/statefulset.yaml '"helm.sh/resource-policy": keep' "Postgres data PVC keep policy"
 
 require_text charts/postgres/templates/_helpers.tpl "postgres.instance" "Postgres instance override helper"
 require_text charts/new-api/templates/_helpers.tpl "new-api.instance" "new-api instance override helper"
@@ -74,7 +87,11 @@ require_text charts/broker/values.yaml "OFFICIAL_PROVIDER_PUBLIC_BASE_URL" "Brok
 require_text scripts/deploy-platform-staging-139.sh "BROKER_CASDOOR_DATABASE_URL" "Broker Casdoor database URL deploy override"
 require_text scripts/deploy-platform-staging-139.sh "ai-provider-adapter.secret.MOMA_SEEDANCE_API_KEY" "AI provider adapter deploy secret override"
 require_text scripts/install-platform-bundle.sh "deployment/ai-provider-adapter" "AI provider adapter bundle rollout wait"
-require_text scripts/package-platform-bundle.sh "configure-newapi-provider-adapter-139.sh" "AI provider adapter bundle channel config script"
+require_text scripts/install-platform-bundle.sh "preflight_existing_resources" "bundle install preflight for existing non-Helm resources"
+require_text scripts/install-platform-bundle.sh "meta.helm.sh/release-name" "bundle install preflight checks Helm release ownership"
+require_text scripts/install-platform-bundle.sh "rollout_status_if_exists" "bundle rollout waits only for rendered or existing workloads"
+forbid_text scripts/package-platform-bundle.sh "configure-newapi-provider-adapter-139.sh" "139-only New API channel config script in portable bundle packaging"
+forbid_text scripts/package-platform-bundle.sh "verify-newapi-provider-adapter-139.sh" "139-only New API channel verifier script in portable bundle packaging"
 require_text environments/staging/platform.values.yaml "namespace: platform" "bundle namespace is values-driven"
 require_text scripts/install-platform-bundle.sh "read_values_namespace" "bundle deploy reads namespace from values"
 require_text environments/staging/platform.values.yaml "MODEL_RECHARGE_WALLET_GROUP: all" "shared model recharge wallet group"

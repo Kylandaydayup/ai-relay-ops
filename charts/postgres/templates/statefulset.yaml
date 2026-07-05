@@ -49,6 +49,8 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
+        annotations:
+          "helm.sh/resource-policy": keep
       spec:
         accessModes: ["ReadWriteOnce"]
         {{- if .Values.persistence.storageClassName }}

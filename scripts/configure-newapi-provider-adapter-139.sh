@@ -15,7 +15,7 @@ keyiyun_source_channel_id="${KEYIYUN_SOURCE_CHANNEL_ID:-6}"
 keyiyun_veo_channel_name="${KEYIYUN_VEO_ADAPTER_CHANNEL_NAME:-Keyiyun VEO via Adapter}"
 keyiyun_grok_channel_name="${KEYIYUN_GROK_ADAPTER_CHANNEL_NAME:-Keyiyun Grok via Adapter}"
 keyiyun_veo_model="${KEYIYUN_VEO_MODEL:-veo_3_1_fast}"
-keyiyun_grok_model="${KEYIYUN_GROK_MODEL:-grok_video3}"
+keyiyun_grok_model="${KEYIYUN_GROK_MODEL:-grok_video3,grok_video3_pro}"
 
 export KUBECONFIG="$kubeconfig"
 
@@ -174,6 +174,18 @@ CROSS JOIN LATERAL unnest(string_to_array(c.models, ',')) AS model_name
 WHERE c.name IN (SELECT name FROM desired_adapter_channels)
   AND btrim(group_name) <> ''
   AND btrim(model_name) <> '';
+
+CREATE TEMP TABLE desired_keyiyun_grok_models AS
+SELECT DISTINCT btrim(model_name) AS model
+FROM unnest(string_to_array(:'keyiyun_grok_model', ',')) AS model_name
+WHERE btrim(model_name) <> '';
+
+UPDATE abilities
+SET enabled = false
+WHERE model IN (SELECT model FROM desired_keyiyun_grok_models)
+  AND channel_id NOT IN (
+    SELECT id FROM channels WHERE name = :'keyiyun_grok_channel_name'
+  );
 SQL
 
 "$(dirname "$0")/verify-newapi-provider-adapter-139.sh"

@@ -5,6 +5,8 @@ metadata:
   name: {{ include "new-api.fullname" . }}-data
   labels:
     {{- include "new-api.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/resource-policy": keep
 spec:
   accessModes:
     - ReadWriteOnce

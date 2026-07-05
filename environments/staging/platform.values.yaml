@@ -72,7 +72,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: ai-provider-adapter
-    tag: staging-139-provider-adapter-20260704-mapping-fix
+    tag: staging-139-provider-adapter-20260705-prompt-fix
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -80,7 +80,7 @@ ai-provider-adapter:
     nodePort: null
   env:
     AI_PROVIDER_ADAPTER_DEFAULT_PROVIDER: moma_seedance
-    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
+    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
     MOMA_SEEDANCE_BASE_URL: https://zhenze-huhehaote.cmecloud.cn
     MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
     MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: "false"
@@ -137,7 +137,7 @@ broker:
     NEWAPI_ADMIN_USER_ID: "1"
     NEWAPI_MANAGED_TOKEN_GROUP: default
     NEWAPI_MANAGED_TOKEN_QUOTA_MULTIPLIER: "5000"
-    BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"],"agent_default":true},{"id":"deepseek-v3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"deepseek-r1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}],"image":[{"id":"qwen/qwen-image-2.0-pro","name":"Qwen Image 2.0 Pro","capabilities":["image"],"endpoint":"openai-images"}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]},{"id":"doubao-seedance-2.0","name":"Doubao Seedance 2.0 Raw","capabilities":["video"]},{"id":"doubao-seedance-2-0-260128","name":"Doubao Seedance 2.0 Upstream","capabilities":["video"]},{"id":"veo_3_1_fast","name":"Keyiyun VEO 3.1 Fast","capabilities":["video"]},{"id":"grok_video3","name":"Keyiyun Grok Video 3","capabilities":["video"]}]}'
+    BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"qwen/qwen3.7-max","name":"Qwen3.7 Max","capabilities":["text"]},{"id":"MiniMax-M2.5","name":"MiniMax M2.5","capabilities":["text"],"agent_default":true},{"id":"deepseek-v3.2","name":"DeepSeek V3.2","capabilities":["text"]},{"id":"deepseek-r1-0528","name":"DeepSeek R1 0528","capabilities":["text"]},{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}],"image":[{"id":"qwen/qwen-image-2.0-pro","name":"Qwen Image 2.0 Pro","capabilities":["image"],"endpoint":"openai-images"}],"video":[{"id":"AICC-doubao-seedance-2.0","name":"Doubao Seedance 2.0","capabilities":["video"]},{"id":"doubao-seedance-2.0","name":"Doubao Seedance 2.0 Raw","capabilities":["video"]},{"id":"doubao-seedance-2-0-260128","name":"Doubao Seedance 2.0 Upstream","capabilities":["video"]},{"id":"veo_3_1_fast","name":"Keyiyun VEO 3.1 Fast","capabilities":["video"]},{"id":"grok_video3","name":"Keyiyun Grok Video 3","capabilities":["video"]},{"id":"grok_video3_pro","name":"Keyiyun Grok Video 3 Pro","capabilities":["video"]}]}'
     DESKTOP_CONFIG_BRAND: edream
     DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://139.196.254.8/casdoor","clientIssuer":"http://auth.nexushome.top","clientId":"ec5db9ad91bb6b87656b","audience":["ec5db9ad91bb6b87656b","http://139.196.254.8/casdoor"],"jwksUri":"http://auth.nexushome.top/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.nexushome.top/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.nexushome.top/broker","modelRechargeUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://arcreel-api.nexushome.top/v1","agentMessagesUrl":"http://api.nexushome.top","agentApiKeyUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
     MODEL_RECHARGE_CASDOOR_OWNER: edream

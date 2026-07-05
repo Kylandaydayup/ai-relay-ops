@@ -77,7 +77,7 @@ ai-provider-adapter:
     nodePort: null
   env:
     AI_PROVIDER_ADAPTER_DEFAULT_PROVIDER: moma_seedance
-    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
+    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
     MOMA_SEEDANCE_BASE_URL: https://zhenze-huhehaote.cmecloud.cn
     MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
     MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: "false"

@@ -146,7 +146,7 @@ if [ -z "$broker_newapi_token" ]; then
 fi
 
 moma_seedance_api_key="${MOMA_SEEDANCE_API_KEY:-$(secret_value_or_empty ai-provider-adapter-secret MOMA_SEEDANCE_API_KEY)}"
-keyiyun_api_key="${KEYIYUN_API_KEY:-$(secret_value_or_empty ai-provider-adapter-secret KEYIYUN_API_KEY)}"
+keyiyun_api_key="${KEYIYUN_API_KEY:-}"
 
 edream_jasypt_password="${EDREAMCROWD_JASYPT_ENCRYPTOR_PASSWORD:-$(secret_value_or_empty edreamcrowd-backend-secret JASYPT_ENCRYPTOR_PASSWORD)}"
 edream_casdoor_access_key="${EDREAMCROWD_CASDOOR_ACCESS_KEY:-$(secret_value_or_empty edreamcrowd-backend-secret CASDOOR_ACCESS_KEY)}"

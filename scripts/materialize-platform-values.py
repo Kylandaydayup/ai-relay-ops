@@ -119,9 +119,7 @@ def main() -> None:
     moma_seedance_api_key = env.get("MOMA_SEEDANCE_API_KEY") or secret(
         "ai-provider-adapter-secret", "MOMA_SEEDANCE_API_KEY"
     )
-    keyiyun_api_key = env.get("KEYIYUN_API_KEY") or secret(
-        "ai-provider-adapter-secret", "KEYIYUN_API_KEY"
-    )
+    keyiyun_api_key = env.get("KEYIYUN_API_KEY", "")
 
     edream_jasypt = require(
         "EDREAMCROWD_JASYPT_ENCRYPTOR_PASSWORD",
