@@ -114,6 +114,7 @@ require_text charts/gateway/templates/configmap.yaml "proxy_pass {{ .Values.upst
 require_text charts/gateway/templates/configmap.yaml "proxy_pass {{ .Values.upstreams.casdoor }}/" "Casdoor upstream from values"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.api }}" "optional API domain server"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.newapiCompat }}" "optional NewAPI compatibility gateway domain server"
+require_text charts/gateway/templates/configmap.yaml "location = /v1/video/generations" "NewAPI compatibility domain routes video create requests to compatibility gateway"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.auth }}" "optional auth domain server"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.zhongchou }}" "optional crowdfunding domain server"
 require_text charts/gateway/templates/configmap.yaml "server_name {{ .Values.domains.arcreel }}" "optional ArcReel reserved domain server"
