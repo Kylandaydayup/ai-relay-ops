@@ -54,9 +54,10 @@ postgresWait:
 
 modelRechargeSync:
   enabled: false
-  schedule: "*/1 * * * *"
-  successfulJobsHistoryLimit: 3
+  schedule: "*/10 * * * *"
+  successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 3
+  ttlSecondsAfterFinished: 300
 
 probes:
   readiness:

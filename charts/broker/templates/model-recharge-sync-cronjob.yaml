@@ -12,6 +12,7 @@ spec:
   failedJobsHistoryLimit: {{ .Values.modelRechargeSync.failedJobsHistoryLimit }}
   jobTemplate:
     spec:
+      ttlSecondsAfterFinished: {{ .Values.modelRechargeSync.ttlSecondsAfterFinished }}
       template:
         metadata:
           labels:

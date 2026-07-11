@@ -128,7 +128,10 @@ broker:
     MODEL_RECHARGE_QUOTA_PER_CNY: "100"
   modelRechargeSync:
     enabled: true
-    schedule: "*/1 * * * *"
+    schedule: "*/10 * * * *"
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    ttlSecondsAfterFinished: 300
   secret:
     create: true
     DATABASE_URL: "postgresql+psycopg://broker:CHANGE_ME_BROKER_DB_PASSWORD@platform-postgres:5432/broker_db"
