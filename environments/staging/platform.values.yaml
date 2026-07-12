@@ -118,7 +118,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: ai-relay-broker
-    tag: staging-139-model-recharge-webhook-ca3c3bb
+    tag: staging-134-catalog-refresh-endpoint-20260708
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -149,10 +149,7 @@ broker:
     MODEL_RECHARGE_QUOTA_PER_CNY: "100"
   modelRechargeSync:
     enabled: true
-    schedule: "*/10 * * * *"
-    successfulJobsHistoryLimit: 1
-    failedJobsHistoryLimit: 3
-    ttlSecondsAfterFinished: 300
+    schedule: "*/1 * * * *"
   secret:
     create: true
     DATABASE_URL: ""

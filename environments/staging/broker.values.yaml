@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   repository: ai-relay-broker
-  tag: staging-139-model-recharge-webhook-ca3c3bb
+  tag: staging-134-catalog-refresh-endpoint-20260708
   pullPolicy: IfNotPresent
 
 containerPort: 8080
@@ -44,10 +44,7 @@ env:
 
 modelRechargeSync:
   enabled: true
-  schedule: "*/10 * * * *"
-  successfulJobsHistoryLimit: 1
-  failedJobsHistoryLimit: 3
-  ttlSecondsAfterFinished: 300
+  schedule: "*/1 * * * *"
 
 secret:
   create: true
