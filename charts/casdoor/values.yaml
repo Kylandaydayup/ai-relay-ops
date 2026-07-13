@@ -2,6 +2,9 @@ nameOverride: ""
 fullnameOverride: ""
 instanceOverride: ""
 
+global:
+  imagePullSecrets: []
+
 replicaCount: 1
 
 image:

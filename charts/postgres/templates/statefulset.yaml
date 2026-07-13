@@ -17,6 +17,10 @@ spec:
         app.kubernetes.io/name: {{ include "postgres.name" . }}
         app.kubernetes.io/instance: {{ include "postgres.instance" . }}
     spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: postgres
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

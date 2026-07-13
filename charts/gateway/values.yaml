@@ -1,6 +1,9 @@
 nameOverride: ""
 fullnameOverride: ""
 
+global:
+  imagePullSecrets: []
+
 replicaCount: 1
 
 strategy:

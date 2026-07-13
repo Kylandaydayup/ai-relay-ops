@@ -2,6 +2,9 @@ nameOverride: ""
 fullnameOverride: platform
 namespace: platform
 
+global:
+  imagePullSecrets: []
+
 databaseInit:
   enabled: true
   image:

@@ -21,6 +21,10 @@ spec:
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/backend-secret.yaml") . | sha256sum }}
     spec:
+      {{- with .Values.global.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- if .Values.backend.postgresWait.enabled }}
       initContainers:
         - name: wait-for-postgres

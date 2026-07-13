@@ -19,6 +19,10 @@ spec:
             app.kubernetes.io/name: {{ include "broker.name" . }}
             app.kubernetes.io/instance: {{ include "broker.instance" . }}
         spec:
+          {{- with .Values.global.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           restartPolicy: OnFailure
           containers:
             - name: model-recharge-sync
