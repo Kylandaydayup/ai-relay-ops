@@ -21,6 +21,23 @@ scripts/platform/upgrade.sh 139
 
 ## Image Builds
 
+Base images are a separate pipeline stage. They are stored in Harbor and split
+into generic language/system bases and project-specific bases with dependencies
+preinstalled. Runtime image builds only pull these images from Harbor. They do
+not create base images or download dependencies.
+
+```bash
+scripts/images/sync-base-images.sh 139
+scripts/images/build-project-base-images.sh 139
+```
+
+Every base image also has its own build entrypoint:
+
+```text
+scripts/images/base/build-*.sh
+scripts/images/project-base/build-*.sh
+```
+
 Each runtime image has one build entrypoint:
 
 ```bash
@@ -35,9 +52,43 @@ scripts/images/build-gateway.sh 139
 scripts/images/build-all.sh 139
 ```
 
-Build scripts pull base images from Harbor first. If Harbor does not have the
-base image, the script pulls the public image, pushes it back to Harbor, and
-then builds the runtime image from the Harbor image.
+`sync-base-images.sh`, `build-project-base-images.sh`, and `build-all.sh` are
+composition scripts. They do not contain per-image Docker build logic; they call
+the single-image scripts above. `build-all.sh` only builds runnable service
+images; it does not build generic or project-base images.
+
+Only `scripts/images/base/build-*.sh` may mirror upstream generic images into
+Harbor. Project-base image scripts pull generic bases from Harbor only. Runtime
+image scripts require both generic and project-base Harbor images to already
+exist. If a base image is missing, the build fails instead of building it
+implicitly.
+
+Images default to `linux/amd64`, matching the current 134/139 servers. Override
+with `IMAGE_PLATFORM` only when deploying to a different node architecture.
+When building from an exported source tree without `.git`, set
+`IMAGE_REF_LABEL=<branch-or-commit>` so the pushed image tag remains traceable.
+
+Harbor projects:
+
+```text
+base-images           generic language/system bases, for example python/node/go/nginx/postgres
+project-base-images   project-specific builder/runtime bases with dependencies preinstalled
+platform              runnable service images
+```
+
+Project base images use the fixed `harbor.projectBaseTag` from
+`environments/<env>/harbor.yaml`. They do not include application source code.
+Application images may compile local source code, but they must not download
+dependencies or install system packages during runtime-image builds.
+
+Harbor location and project names are configured only in:
+
+```text
+environments/<env>/harbor.yaml
+```
+
+Switching Harbor must not require editing Dockerfiles or per-image build
+scripts.
 
 After a runtime image is pushed, the script updates:
 

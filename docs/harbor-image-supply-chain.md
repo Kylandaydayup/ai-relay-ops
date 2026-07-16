@@ -55,7 +55,7 @@ Use the pod/container base name, not ReplicaSet or Pod suffixes.
 4. Run:
 
 ```bash
-bash scripts/harbor/bootstrap.sh build/harbor.env
+bash scripts/harbor/bootstrap.sh 139 build/harbor.env
 ```
 
 If external downloads are slow, copy the offline installer through an internal
@@ -87,9 +87,12 @@ After logging in to Harbor:
 
 ```bash
 scripts/images/sync-base-images.sh 139
+scripts/images/build-project-base-images.sh 139
 ```
 
-The base image list can be overridden with `BASE_IMAGES`.
+The generic base image targets can be overridden with `BASE_IMAGE_TARGETS` for
+`sync-base-images.sh`. Project-base targets can be overridden with
+`BASE_IMAGE_TARGETS` for `build-project-base-images.sh`.
 
 ## Build And Push
 
@@ -99,10 +102,11 @@ Each runtime image has a dedicated build script. To build all runtime images:
 scripts/images/build-all.sh 139
 ```
 
-Each build script resolves base images through Harbor first, falls back to the
-public source only when Harbor misses the image, pushes the mirrored base image
-back to Harbor, and then updates `environments/<env>/edream-deployment.yaml`
-with the new runtime image.
+Runtime image scripts require generic and project-base images to already exist
+in Harbor. They do not mirror base images, build project-base images, or use the
+network during Docker build. Missing dependencies must be fixed by rebuilding
+the corresponding project-base image first. Runtime scripts update
+`environments/<env>/edream-deployment.yaml` with the new runtime image.
 
 ## Helm Pull Secrets
 

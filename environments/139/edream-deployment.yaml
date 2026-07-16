@@ -1,4 +1,3 @@
----
 fullnameOverride: platform
 namespace: platform
 databaseInit:
@@ -17,12 +16,16 @@ databaseInit:
   secret:
     create: false
     name: platform-postgres-init-secret
+  image:
+    repository: 81.71.122.120/base-images/postgres
+    tag: 16-alpine
+    pullPolicy: IfNotPresent
 postgres:
   enabled: true
   fullnameOverride: platform-postgres
   instanceOverride: platform-db
   image:
-    repository: postgres
+    repository: 81.71.122.120/base-images/postgres
     tag: 16-alpine
     pullPolicy: IfNotPresent
   auth:
@@ -48,7 +51,7 @@ new-api:
   instanceOverride: relay-new-api
   image:
     repository: 81.71.122.120/platform/relay-new-api
-    tag: main-20260712234904
+    tag: main-20260717040752
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -57,6 +60,11 @@ new-api:
   env:
     TZ: Asia/Shanghai
     NODE_NAME: relay-new-api-staging-1
+  postgresWait:
+    image:
+      repository: 81.71.122.120/base-images/postgres
+      tag: 16-alpine
+      pullPolicy: IfNotPresent
   secret:
     create: false
     SQL_DSN: ''
@@ -70,7 +78,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: main-20260712234904
+    tag: main-20260717053200
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -83,8 +91,8 @@ ai-provider-adapter:
     MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
     MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: 'false'
     KEYIYUN_BASE_URL: https://zcbservice.aizfw.cn/kyyReactApiServer
-    KEYIYUN_VEO_CREATE_PATH: "/v1/veo/videos"
-    KEYIYUN_GROK_CREATE_PATH: "/v1/grok/videos"
+    KEYIYUN_VEO_CREATE_PATH: /v1/veo/videos
+    KEYIYUN_GROK_CREATE_PATH: /v1/grok/videos
     LOG_LEVEL: ERROR
     TOP_LOGGER_LEVEL: ERROR
     TASK_LOGGER_LEVEL: ERROR
@@ -99,7 +107,7 @@ newapi-compat-gateway:
   instanceOverride: newapi-compat-gateway
   image:
     repository: 81.71.122.120/platform/newapi-compat-gateway
-    tag: main-20260712234904
+    tag: main-20260717053200
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -114,7 +122,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: 81.71.122.120/platform/relay-broker
-    tag: staging-139-edream-wallet-bootstrap-20260713-v5
+    tag: main-20260717053200
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -153,7 +161,12 @@ broker:
     MODEL_RECHARGE_QUOTA_PER_CNY: '100'
   modelRechargeSync:
     enabled: true
-    schedule: "*/1 * * * *"
+    schedule: '*/10 * * * *'
+  postgresWait:
+    image:
+      repository: 81.71.122.120/base-images/postgres
+      tag: 16-alpine
+      pullPolicy: IfNotPresent
   secret:
     create: false
     DATABASE_URL: ''
@@ -170,9 +183,14 @@ casdoor:
   fullnameOverride: casdoor
   instanceOverride: casdoor
   image:
-    repository: casbin/casdoor
-    tag: latest
+    repository: 81.71.122.120/platform/casdoor
+    tag: main-20260717040752
     pullPolicy: IfNotPresent
+  postgresWait:
+    image:
+      repository: 81.71.122.120/base-images/postgres
+      tag: 16-alpine
+      pullPolicy: IfNotPresent
   service:
     type: NodePort
     port: 8000
@@ -196,7 +214,7 @@ edreamcrowd:
   backend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-backend
-      tag: feature-edream-recharge-amount-20260712234904
+      tag: main-20260717040752
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -209,6 +227,11 @@ edreamcrowd:
       CASDOOR_APPLICATION_NAME: eDream_web
       CASDOOR_ORGANIZATION_NAME: edream
       APP_FRONTEND_URL: http://zhongchou.nexushome.top/zhongchou/
+    postgresWait:
+      image:
+        repository: 81.71.122.120/base-images/postgres
+        tag: 16-alpine
+        pullPolicy: IfNotPresent
     secret:
       SPRING_DATASOURCE_PASSWORD: ''
       JASYPT_ENCRYPTOR_PASSWORD: ''
@@ -219,7 +242,7 @@ edreamcrowd:
   frontend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-frontend
-      tag: feature-edream-recharge-amount-20260712234904
+      tag: main-20260717040752
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -238,7 +261,7 @@ gateway:
   fullnameOverride: platform-gateway
   image:
     repository: 81.71.122.120/platform/platform-gateway
-    tag: local-nogit-20260716150736
+    tag: main-20260717040752
     pullPolicy: IfNotPresent
   hostNetwork:
     enabled: true
@@ -269,12 +292,12 @@ gateway:
     edreamBackend: http://edreamcrowd-backend:8080
     edreamFrontend: http://edreamcrowd-frontend:80
   download:
-    path: "/downloads/edream/latest"
+    path: /downloads/edream/latest
     redirectUrl: https://download.arc-reel.com/edream/latest
   casdoor:
-    basePath: "/casdoor"
-    basePathSlash: "/casdoor/"
-    defaultLoginPath: "/casdoor/login/edream"
+    basePath: /casdoor
+    basePathSlash: /casdoor/
+    defaultLoginPath: /casdoor/login/edream
 deployment:
   releaseName: platform
 global:

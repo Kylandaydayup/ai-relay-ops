@@ -154,7 +154,7 @@ broker:
     MODEL_RECHARGE_QUOTA_PER_CNY: '100'
   modelRechargeSync:
     enabled: true
-    schedule: "*/1 * * * *"
+    schedule: "*/10 * * * *"
   secret:
     create: false
     DATABASE_URL: ''

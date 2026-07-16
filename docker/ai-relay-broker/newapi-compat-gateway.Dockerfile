@@ -7,14 +7,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-ARG PIP_INDEX_URL=https://pypi.org/simple
-
-RUN python -m pip install --no-cache-dir --index-url "${PIP_INDEX_URL}" --upgrade pip
-
 COPY pyproject.toml README.md ./
 COPY newapi_compat_gateway ./newapi_compat_gateway
-
-RUN python -m pip install --no-cache-dir --index-url "${PIP_INDEX_URL}" .
 
 EXPOSE 8080
 

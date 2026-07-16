@@ -2,17 +2,70 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-env_file="${1:-${HARBOR_ENV_FILE:-build/harbor.env}}"
+env_name="${1:?usage: bootstrap.sh <134|139|template> [harbor-env-file]}"
+env_file="${2:-${HARBOR_ENV_FILE:-build/harbor.env}}"
+harbor_file="environments/${env_name}/harbor.yaml"
 
 cd "$repo_root"
 # shellcheck source=../build/harbor.env.example
 . "$env_file"
 
+if [ ! -f "$harbor_file" ]; then
+  echo "missing Harbor config: $harbor_file" >&2
+  exit 2
+fi
+
+yaml_get() {
+  local file=$1
+  local path=$2
+  local fallback=${3:-}
+
+  if command -v ruby >/dev/null 2>&1; then
+    ruby -ryaml -e '
+    file, path, fallback = ARGV
+    data = YAML.load_file(file) || {}
+    cursor = data
+    path.split(".").each do |part|
+      if cursor.is_a?(Hash) && cursor.key?(part)
+        cursor = cursor[part]
+      else
+        cursor = nil
+        break
+      end
+    end
+    print(cursor.nil? ? fallback : cursor)
+    ' "$file" "$path" "$fallback"
+    return 0
+  fi
+
+  python3 - "$file" "$path" "$fallback" <<'PY'
+import sys
+import yaml
+
+file_name, path, fallback = sys.argv[1:4]
+with open(file_name, encoding="utf-8") as handle:
+    data = yaml.safe_load(handle) or {}
+cursor = data
+for part in path.split("."):
+    if isinstance(cursor, dict) and part in cursor:
+        cursor = cursor[part]
+    else:
+        cursor = None
+        break
+print(fallback if cursor is None else cursor, end="")
+PY
+}
+
+registry="$(yaml_get "$harbor_file" harbor.registry)"
+base_project="$(yaml_get "$harbor_file" harbor.baseProject base-images)"
+project_base_project="$(yaml_get "$harbor_file" harbor.projectBaseProject project-base-images)"
+runtime_project="$(yaml_get "$harbor_file" harbor.runtimeProject platform)"
+
 harbor_version="${HARBOR_VERSION:-v2.12.2}"
 install_dir="${HARBOR_INSTALL_DIR:-/opt/harbor}"
 data_dir="${HARBOR_DATA_DIR:-/data/harbor}"
 http_port="${HARBOR_PORT:-80}"
-hostname="${HARBOR_HOST:-81.71.122.120}"
+hostname="${HARBOR_HOST:-$registry}"
 
 if [ -z "${HARBOR_ADMIN_PASSWORD:-}" ]; then
   echo "HARBOR_ADMIN_PASSWORD is required in $env_file" >&2
@@ -69,7 +122,7 @@ PY
 
 sudo ./install.sh
 
-for project in "${HARBOR_BASE_PROJECT:-base-images}" "${HARBOR_CACHE_PROJECT:-build-cache}" "${HARBOR_RUNTIME_PROJECT:-platform}"; do
+for project in "$base_project" "$project_base_project" "$runtime_project"; do
   if [ -z "$project" ]; then
     continue
   fi
