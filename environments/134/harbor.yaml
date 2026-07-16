@@ -1,0 +1,5 @@
+harbor:
+  registry: 81.71.122.120
+  baseProject: base-images
+  cacheProject: build-cache
+  runtimeProject: platform

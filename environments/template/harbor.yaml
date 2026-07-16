@@ -1,0 +1,5 @@
+harbor:
+  registry: registry.example.com
+  baseProject: base-images
+  cacheProject: build-cache
+  runtimeProject: platform

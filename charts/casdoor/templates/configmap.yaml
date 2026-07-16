@@ -1,7 +1,8 @@
+{{- if .Values.config.create }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ include "casdoor.fullname" . }}-config
+  name: {{ include "casdoor.configName" . }}
   labels:
     {{- include "casdoor.labels" . | nindent 4 }}
 data:
@@ -37,3 +38,4 @@ data:
     logConfig = {{ .Values.config.logConfig }}
     initDataFile = {{ .Values.config.initDataFile | quote }}
     frontendBaseDir = {{ .Values.config.frontendBaseDir | quote }}
+{{- end }}

@@ -33,27 +33,27 @@ spec:
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  name: {{ include "platform.postgresInitSecretName" . }}
                   key: POSTGRES_PASSWORD
             - name: CASDOOR_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  name: {{ include "platform.postgresInitSecretName" . }}
                   key: CASDOOR_DB_PASSWORD
             - name: EDREAMCROWD_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  name: {{ include "platform.postgresInitSecretName" . }}
                   key: EDREAMCROWD_DB_PASSWORD
             - name: NEWAPI_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  name: {{ include "platform.postgresInitSecretName" . }}
                   key: NEWAPI_DB_PASSWORD
             - name: BROKER_DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "platform.fullname" . }}-postgres-init-secret
+                  name: {{ include "platform.postgresInitSecretName" . }}
                   key: BROKER_DB_PASSWORD
           command:
             - /bin/sh

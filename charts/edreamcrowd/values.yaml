@@ -39,6 +39,8 @@ backend:
       periodSeconds: 10
       failureThreshold: 12
   secret:
+    create: true
+    name: ""
     SPRING_DATASOURCE_PASSWORD: ""
     JASYPT_ENCRYPTOR_PASSWORD: ""
     CASDOOR_ACCESS_KEY: ""

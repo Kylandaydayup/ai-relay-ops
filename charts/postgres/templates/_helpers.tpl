@@ -22,5 +22,9 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
 
 {{- define "postgres.secretName" -}}
+{{- if .Values.secret.name -}}
+{{- .Values.secret.name -}}
+{{- else -}}
 {{- printf "%s-secret" (include "postgres.fullname" .) -}}
+{{- end -}}
 {{- end -}}

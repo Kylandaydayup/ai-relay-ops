@@ -1,0 +1,3 @@
+ARG NGINX_BASE_IMAGE=nginx:alpine
+
+FROM ${NGINX_BASE_IMAGE}

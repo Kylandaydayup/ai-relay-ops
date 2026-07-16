@@ -20,3 +20,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "casdoor.instance" -}}
 {{- default .Release.Name .Values.instanceOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "casdoor.configName" -}}
+{{- if .Values.config.name -}}
+{{- .Values.config.name -}}
+{{- else -}}
+{{- printf "%s-config" (include "casdoor.fullname" .) -}}
+{{- end -}}
+{{- end -}}

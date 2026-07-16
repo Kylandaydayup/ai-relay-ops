@@ -33,6 +33,8 @@ service:
   nodePort: 30082
 
 config:
+  create: true
+  name: ""
   httpPort: 8000
   runMode: prod
   copyRequestBody: true

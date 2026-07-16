@@ -20,3 +20,11 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- define "edreamcrowd.instance" -}}
 {{- default .Release.Name .Values.instanceOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "edreamcrowd.backendSecretName" -}}
+{{- if .Values.backend.secret.name -}}
+{{- .Values.backend.secret.name -}}
+{{- else -}}
+{{- printf "%s-backend-secret" (include "edreamcrowd.fullname" .) -}}
+{{- end -}}
+{{- end -}}

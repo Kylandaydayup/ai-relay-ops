@@ -1,143 +1,84 @@
-# ai-relay-ops
+# eDream Ops
 
-Deployment and operations repository for the AI relay platform.
+This repository owns the standard image build and Helm deployment flow for the
+eDream relay platform.
 
-## Scope
+## Standard Flow
 
-This repository manages:
-
-- Kubernetes namespaces.
-- Helm charts for `new-api`, `ai-relay-broker`, Casdoor, EDreamCrowd, `platform-gateway`, and the shared staging Postgres.
-- Environment values for staging and production.
-- Secret templates without committing real secrets.
-- Version locks, upgrade notes, rollback notes, and smoke tests.
-- A Kubernetes-managed Nginx gateway chart for the staging validation host, plus legacy host Nginx templates kept only for transition.
-
-It does not contain business code. Broker business logic lives in `ai-relay-broker`.
-
-## Common Commands
-
-```bash
-make template SERVICE=broker ENV=prod
-make template SERVICE=platform ENV=staging
-make install SERVICE=broker ENV=prod
-make upgrade SERVICE=broker ENV=prod IMAGE_TAG=v0.1.1
-make rollback SERVICE=broker ENV=prod REVISION=1
-make status ENV=prod
-make verify-platform-chart
-```
-
-## Portable Bundle
-
-The portable flow has two separate steps:
-
-1. Build once: create a deployable bundle with charts and image tar files.
-2. Deploy once: copy the bundle to a server, edit `values/values.yaml`, then run one deploy command.
-
-The build step and deploy step are intentionally separate. Runtime environment
-settings belong to `values/values.yaml`; source repository and image-build
-settings belong to `build/images.env`.
+The deployment source of truth is the environment deployment file:
 
 ```text
-charts/ + values/values.yaml + images/*.tar + install scripts
+environments/134/edream-deployment.yaml
+environments/139/edream-deployment.yaml
 ```
 
-One-click build:
+To replace an image manually, edit the image repository and tag in the target
+environment file, then run the platform upgrade command.
 
 ```bash
-cp build/images.env.example build/images.env
-vim build/images.env
-make build-bundle BUNDLE_ENV=template BUILD_ENV_FILE=build/images.env
+scripts/platform/upgrade.sh 139
 ```
 
-One-click deploy on the target server:
+## Image Builds
+
+Each runtime image has one build entrypoint:
 
 ```bash
-tar -xzf platform-bundle-*.tar.gz
-cd platform-bundle-*
-vim values/values.yaml
-LOAD_IMAGES=true scripts/deploy-platform-bundle.sh
+scripts/images/build-new-api.sh 139
+scripts/images/build-broker.sh 139
+scripts/images/build-ai-provider-adapter.sh 139
+scripts/images/build-newapi-compat-gateway.sh 139
+scripts/images/build-edreamcrowd-backend.sh 139
+scripts/images/build-edreamcrowd-frontend.sh 139
+scripts/images/build-casdoor.sh 139
+scripts/images/build-gateway.sh 139
+scripts/images/build-all.sh 139
 ```
 
-Later upgrades should only require changing image names or tags in
-`values/values.yaml` and rerunning `scripts/deploy-platform-bundle.sh`.
-The deploy script reads the target namespace from top-level `namespace:` in
-`values/values.yaml`; `NAMESPACE=...` is still available as an explicit override.
+Build scripts pull base images from Harbor first. If Harbor does not have the
+base image, the script pulls the public image, pushes it back to Harbor, and
+then builds the runtime image from the Harbor image.
 
-## Staging 139
-
-The 139 validation host runs the platform as one integrated Kubernetes-managed stack:
-
-- Casdoor as the identity source.
-- EDreamCrowd frontend and backend.
-- `new-api` as the model relay console and upstream channel manager.
-- `ai-relay-broker` as the product-facing quota and relay layer.
-- `platform-gateway` as the Kubernetes-managed Nginx public entrypoint for `/`, `/zhongchou/`, `/casdoor/`, and `/broker/`.
-- Host Nginx is a transition fallback only. The deployment script refuses to let the gateway Pod bind host port 80 unless `ALLOW_HOST_GATEWAY_CUTOVER=1` is explicitly set.
-
-System-level deployment parameters, including ports and public paths, live in:
-
-- `environments/staging/*.values.yaml`
-- `environments/staging/platform.values.yaml`
-- `nginx/staging/platform.values.env`
-
-Service runtime configuration is rendered into each workload's Pod spec from the chart templates. Real secrets stay outside git in Kubernetes Secrets and `/root/platform-secrets`.
-
-```bash
-scripts/deploy-staging-139.sh
-scripts/configure-casdoor-staging-139.sh
-scripts/migrate-newapi-docker-to-k8s-139.sh
-```
-
-`scripts/deploy-staging-139.sh` is a compatibility wrapper for the umbrella chart deployment:
-
-```bash
-# Safe mode: install/upgrade the platform release while keeping host Nginx and NodePorts.
-scripts/deploy-staging-139.sh
-
-# Cutover mode: stop host Nginx and let platform-gateway bind port 80.
-GATEWAY_HOST_NETWORK=true ALLOW_HOST_GATEWAY_CUTOVER=1 scripts/deploy-staging-139.sh
-```
-
-## Official Provider Public API
-
-New ArcReel/eDream Desktop packages use Broker as the control plane only. Broker
-issues a hidden managed new-api key, while the Desktop model provider talks to
-new-api directly:
+After a runtime image is pushed, the script updates:
 
 ```text
-Base URL = NEWAPI_PUBLIC_BASE_URL + /v1
-API Key = Broker-managed new-api sk_... / sk-... key
+environments/<env>/edream-deployment.yaml
 ```
 
-Old Desktop packages can still use `BROKER_PUBLIC_BASE_URL + /v1` with a
-Broker-issued `brk_...` key. Keep both public URLs configured so old test
-packages remain compatible during rollout.
+## Platform Commands
 
-Do not expose temporary deployment words such as `k8s` in user-facing API URLs.
-`NEWAPI_PUBLIC_BASE_URL` is the canonical public base returned to new Desktop
-packages. `BROKER_PUBLIC_BASE_URL` remains the canonical public base for Broker
-control APIs and old relay packages:
+Install, upgrade, and uninstall are separate operations:
 
-```yaml
-env:
-  BROKER_PUBLIC_BASE_URL: https://broker.example.com
-  NEWAPI_BASE_URL: http://relay-new-api:3000
-  NEWAPI_PUBLIC_BASE_URL: https://api.example.com
-  BROKER_MODEL_CATALOG_JSON: '{"text":[{"id":"ZHIPU/GLM-5.2","name":"GLM 5.2","capabilities":["text"]}]}'
-  DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","subscription":{"relayBrokerBaseUrl":"https://broker.example.com"},"whitelabel":{"presetProvider":{"mediaBaseUrl":"https://api.example.com/v1","agentMessagesUrl":"https://api.example.com"}}}'
+```bash
+scripts/platform/install.sh 139
+scripts/platform/upgrade.sh 139
+scripts/platform/uninstall.sh 139
 ```
 
-`NEWAPI_BASE_URL` is internal service-to-service routing used by Broker to
-manage tokens and synchronize quota. Do not point Desktop clients at it.
+`upgrade.sh` uses `helm upgrade`, not `helm upgrade --install`.
+`install.sh` uses `helm install`.
+`uninstall.sh` keeps Secret, ConfigMap, and PVC data by default. To delete data,
+set `DELETE_DATA=1` and confirm with `CONFIRM_DELETE_DATA=delete-<env>`.
 
-New Desktop packages fetch public official-provider config from
-`BROKER_PUBLIC_BASE_URL + /v1/public/desktop-config?brand=edream` at startup.
-Keep `DESKTOP_PUBLIC_CONFIG_JSON` in the environment values file as the single
-runtime source for Casdoor public URLs, Broker URL, new-api public URL, display
-name, and recharge links. The packaged Desktop keeps only a local fallback; the
-hidden new-api key is still issued per user by `/v1/me/official-provider`.
+## Packaging
 
-## Production Migration Principle
+Create a deployable package:
 
-Production is still the source of truth and must not be changed during staging validation. Use 139 to prove the integrated stack first, including database migration, OAuth callback rewrites, Nginx routing, and smoke checks. Move production only after the same scripts are proven repeatable and a rollback window is agreed.
+```bash
+scripts/platform/package.sh 139
+```
+
+The default package name is environment-neutral, for example
+`edream-platform-20260716152118.tar.gz`. The package contains charts, the
+selected environment deployment file, image build scripts, platform scripts,
+Harbor scripts, and Dockerfile wrappers.
+
+## Validation
+
+Run:
+
+```bash
+scripts/verify-standard-deployment.sh
+scripts/platform/render.sh 139
+scripts/harbor/check.sh 139
+```

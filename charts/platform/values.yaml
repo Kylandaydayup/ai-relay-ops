@@ -7,6 +7,9 @@ global:
 
 databaseInit:
   enabled: true
+  secret:
+    create: true
+    name: ""
   image:
     repository: postgres
     tag: 16-alpine

@@ -21,6 +21,10 @@ auth:
   username: postgres
   password: ""
 
+secret:
+  create: true
+  name: ""
+
 persistence:
   enabled: true
   storageClassName: local-path

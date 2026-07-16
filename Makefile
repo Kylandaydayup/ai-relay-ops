@@ -1,66 +1,63 @@
-ENV ?= prod
-SERVICE ?= broker
-RELEASE ?= $(SERVICE)
-NAMESPACE ?= platform
-IMAGE_TAG ?=
-REVISION ?=
-HELM_ARGS ?=
-BUNDLE_ENV ?= template
-BUNDLE_DIR ?=
-BUILD_ENV_FILE ?= build/images.env
+ENV ?= 139
 
-CHART := charts/$(SERVICE)
-VALUES := environments/$(ENV)/$(SERVICE).values.yaml
+.PHONY: verify render preflight install upgrade uninstall status package \
+	build-new-api build-broker build-ai-provider-adapter build-newapi-compat-gateway \
+	build-edreamcrowd-backend build-edreamcrowd-frontend build-casdoor build-gateway \
+	build-all sync-base-images harbor-check
 
-.PHONY: template lint install upgrade rollback uninstall status namespace verify-nginx-staging verify-platform-chart build-images package-bundle build-bundle install-bundle deploy-bundle
+verify:
+	scripts/verify-standard-deployment.sh
 
-namespace:
-	kubectl create namespace $(NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
+render:
+	scripts/platform/render.sh $(ENV)
 
-template:
-	helm template $(RELEASE) $(CHART) -n $(NAMESPACE) -f $(VALUES) $(HELM_ARGS)
+preflight:
+	scripts/platform/preflight.sh $(ENV)
 
-lint:
-	helm lint $(CHART) -f $(VALUES)
+install:
+	scripts/platform/install.sh $(ENV)
 
-install: namespace
-	helm upgrade --install $(RELEASE) $(CHART) -n $(NAMESPACE) -f $(VALUES) $(HELM_ARGS)
-
-upgrade: namespace
-	@if [ -n "$(IMAGE_TAG)" ]; then \
-		helm upgrade --install $(RELEASE) $(CHART) -n $(NAMESPACE) -f $(VALUES) --set image.tag=$(IMAGE_TAG) $(HELM_ARGS); \
-	else \
-		helm upgrade --install $(RELEASE) $(CHART) -n $(NAMESPACE) -f $(VALUES) $(HELM_ARGS); \
-	fi
-
-rollback:
-	@if [ -z "$(REVISION)" ]; then echo "REVISION is required"; exit 1; fi
-	helm rollback $(RELEASE) $(REVISION) -n $(NAMESPACE)
+upgrade:
+	scripts/platform/upgrade.sh $(ENV)
 
 uninstall:
-	helm uninstall $(RELEASE) -n $(NAMESPACE)
+	scripts/platform/uninstall.sh $(ENV)
 
 status:
-	kubectl get pods,svc,ingress -n $(NAMESPACE)
-	helm list -n $(NAMESPACE)
+	scripts/platform/status.sh $(ENV)
 
-verify-nginx-staging:
-	scripts/verify-nginx-staging.sh
+package:
+	scripts/platform/package.sh $(ENV)
 
-verify-platform-chart:
-	scripts/verify-platform-chart.sh
+build-new-api:
+	scripts/images/build-new-api.sh $(ENV)
 
-build-images:
-	scripts/build-platform-images.sh $(BUILD_ENV_FILE)
+build-broker:
+	scripts/images/build-broker.sh $(ENV)
 
-package-bundle:
-	ENV_NAME=$(BUNDLE_ENV) BUNDLE_DIR="$(BUNDLE_DIR)" scripts/package-platform-bundle.sh
+build-ai-provider-adapter:
+	scripts/images/build-ai-provider-adapter.sh $(ENV)
 
-build-bundle:
-	ENV_NAME=$(BUNDLE_ENV) BUILD_ENV_FILE=$(BUILD_ENV_FILE) BUNDLE_DIR="$(BUNDLE_DIR)" scripts/build-platform-bundle.sh
+build-newapi-compat-gateway:
+	scripts/images/build-newapi-compat-gateway.sh $(ENV)
 
-install-bundle:
-	scripts/install-platform-bundle.sh
+build-edreamcrowd-backend:
+	scripts/images/build-edreamcrowd-backend.sh $(ENV)
 
-deploy-bundle:
-	scripts/deploy-platform-bundle.sh
+build-edreamcrowd-frontend:
+	scripts/images/build-edreamcrowd-frontend.sh $(ENV)
+
+build-casdoor:
+	scripts/images/build-casdoor.sh $(ENV)
+
+build-gateway:
+	scripts/images/build-gateway.sh $(ENV)
+
+build-all:
+	scripts/images/build-all.sh $(ENV)
+
+sync-base-images:
+	scripts/images/sync-base-images.sh $(ENV)
+
+harbor-check:
+	scripts/harbor/check.sh $(ENV)

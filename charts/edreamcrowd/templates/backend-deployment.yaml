@@ -52,7 +52,7 @@ spec:
             {{- end }}
           envFrom:
             - secretRef:
-                name: {{ include "edreamcrowd.fullname" . }}-backend-secret
+                name: {{ include "edreamcrowd.backendSecretName" . }}
           readinessProbe:
             httpGet:
               path: {{ .Values.backend.probes.readiness.path }}

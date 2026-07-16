@@ -14,10 +14,10 @@ needed from 81.
 
 ## Harbor Endpoint
 
-Initial rollout uses HTTP:
+The current environment uses HTTP:
 
 ```text
-81.71.122.120:8088
+81.71.122.120
 ```
 
 Every Docker or k3s node pulling from this endpoint must trust it as an
@@ -35,9 +35,9 @@ the source branch, and a timestamp precise to seconds:
 Examples:
 
 ```text
-81.71.122.120:8088/edreamcrowd/new-api:main-20260712230501
-81.71.122.120:8088/edreamcrowd/broker:main-20260712230501
-81.71.122.120:8088/edreamcrowd/ai-provider-adapter:main-20260712230501
+81.71.122.120/platform/relay-new-api:main-20260712230501
+81.71.122.120/platform/relay-broker:main-20260712230501
+81.71.122.120/platform/ai-provider-adapter:main-20260712230501
 ```
 
 Use the pod/container base name, not ReplicaSet or Pod suffixes.
@@ -55,7 +55,7 @@ Use the pod/container base name, not ReplicaSet or Pod suffixes.
 4. Run:
 
 ```bash
-bash scripts/bootstrap-harbor-81.sh build/harbor.env
+bash scripts/harbor/bootstrap.sh build/harbor.env
 ```
 
 If external downloads are slow, copy the offline installer through an internal
@@ -67,14 +67,14 @@ Hub access and is not reliable in this environment.
 On the build host:
 
 ```bash
-bash scripts/configure-docker-insecure-registry.sh 81.71.122.120:8088
+bash scripts/harbor/configure-docker-registry.sh 81.71.122.120
 sudo systemctl restart docker
 ```
 
 On each k3s node:
 
 ```bash
-bash scripts/configure-k3s-insecure-registry.sh 81.71.122.120:8088
+bash scripts/harbor/configure-k3s-registry.sh 81.71.122.120
 sudo systemctl restart k3s
 ```
 
@@ -86,21 +86,23 @@ maintenance window.
 After logging in to Harbor:
 
 ```bash
-bash scripts/sync-base-images-to-harbor.sh build/harbor.env
+scripts/images/sync-base-images.sh 139
 ```
 
-The initial base image list is in `build/platform-images.harbor.env.example`.
+The base image list can be overridden with `BASE_IMAGES`.
 
 ## Build And Push
 
-Copy `build/platform-images.harbor.env.example` to
-`build/platform-images.harbor.env`, then run:
+Each runtime image has a dedicated build script. To build all runtime images:
 
 ```bash
-bash scripts/build-push-platform-images.sh build/platform-images.harbor.env
+scripts/images/build-all.sh 139
 ```
 
-The script writes an image manifest under `.build/harbor-platform-images/`.
+Each build script resolves base images through Harbor first, falls back to the
+public source only when Harbor misses the image, pushes the mirrored base image
+back to Harbor, and then updates `environments/<env>/edream-deployment.yaml`
+with the new runtime image.
 
 ## Helm Pull Secrets
 
@@ -116,7 +118,7 @@ Create the secret in each runtime namespace when Harbor projects are private:
 
 ```bash
 kubectl -n platform create secret docker-registry harbor-regcred \
-  --docker-server=81.71.122.120:8088 \
+  --docker-server=81.71.122.120 \
   --docker-username='<robot-user>' \
   --docker-password='<robot-token>'
 ```

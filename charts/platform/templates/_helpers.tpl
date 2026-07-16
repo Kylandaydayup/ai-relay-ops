@@ -16,3 +16,11 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{- end -}}
+
+{{- define "platform.postgresInitSecretName" -}}
+{{- if .Values.databaseInit.secret.name -}}
+{{- .Values.databaseInit.secret.name -}}
+{{- else -}}
+{{- printf "%s-postgres-init-secret" (include "platform.fullname" .) -}}
+{{- end -}}
+{{- end -}}
