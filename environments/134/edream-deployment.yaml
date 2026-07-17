@@ -22,7 +22,7 @@ postgres:
   fullnameOverride: platform-postgres
   instanceOverride: platform-db
   image:
-    repository: postgres
+    repository: 81.71.122.120/base-images/postgres
     tag: 16-alpine
     pullPolicy: IfNotPresent
   auth:
@@ -47,8 +47,8 @@ new-api:
   fullnameOverride: relay-new-api
   instanceOverride: relay-new-api
   image:
-    repository: kyland-new-api
-    tag: prod-134-b9af066e-full
+    repository: 81.71.122.120/platform/relay-new-api
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -69,8 +69,8 @@ ai-provider-adapter:
   fullnameOverride: ai-provider-adapter
   instanceOverride: ai-provider-adapter
   image:
-    repository: ai-provider-adapter
-    tag: staging-139-provider-adapter-20260705-prompt-fix
+    repository: 81.71.122.120/platform/ai-provider-adapter
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -98,8 +98,8 @@ newapi-compat-gateway:
   fullnameOverride: newapi-compat-gateway
   instanceOverride: newapi-compat-gateway
   image:
-    repository: newapi-compat-gateway
-    tag: staging-139-newapi-compat-gateway-20260704-url-priority
+    repository: 81.71.122.120/platform/newapi-compat-gateway
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -113,8 +113,8 @@ broker:
   fullnameOverride: relay-broker
   instanceOverride: relay-broker
   image:
-    repository: 81.71.122.120:8088/edreamcrowd/broker
-    tag: prod-134-edream-wallet-58e2656-20260713234835
+    repository: 81.71.122.120/platform/relay-broker
+    tag: main-20260717233309
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -171,8 +171,8 @@ casdoor:
   fullnameOverride: casdoor
   instanceOverride: casdoor
   image:
-    repository: casbin/casdoor
-    tag: latest
+    repository: 81.71.122.120/platform/casdoor
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -196,8 +196,8 @@ edreamcrowd:
   instanceOverride: edreamcrowd
   backend:
     image:
-      repository: edreamcrowd-backend
-      tag: staging-139
+      repository: 81.71.122.120/platform/edreamcrowd-backend
+      tag: main-20260717213114
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -219,8 +219,8 @@ edreamcrowd:
       name: edreamcrowd-backend-secret
   frontend:
     image:
-      repository: edreamcrowd-frontend
-      tag: staging-139-v5
+      repository: 81.71.122.120/platform/edreamcrowd-frontend
+      tag: main-20260717213114
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -238,8 +238,8 @@ gateway:
   enabled: false
   fullnameOverride: platform-gateway
   image:
-    repository: edreamcrowd-frontend
-    tag: staging-139-v5
+    repository: 81.71.122.120/platform/platform-gateway
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   hostNetwork:
     enabled: true

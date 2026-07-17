@@ -51,7 +51,7 @@ new-api:
   instanceOverride: relay-new-api
   image:
     repository: 81.71.122.120/platform/relay-new-api
-    tag: main-20260717131452
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -78,7 +78,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: main-20260717131452
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -107,7 +107,7 @@ newapi-compat-gateway:
   instanceOverride: newapi-compat-gateway
   image:
     repository: 81.71.122.120/platform/newapi-compat-gateway
-    tag: main-20260717131452
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -122,7 +122,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: 81.71.122.120/platform/relay-broker
-    tag: main-20260717131452
+    tag: main-20260717233309
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -226,7 +226,7 @@ edreamcrowd:
   backend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-backend
-      tag: main-20260717131452
+      tag: main-20260717213114
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -254,7 +254,7 @@ edreamcrowd:
   frontend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-frontend
-      tag: main-20260717131452
+      tag: main-20260717213114
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -273,7 +273,7 @@ gateway:
   fullnameOverride: platform-gateway
   image:
     repository: 81.71.122.120/platform/platform-gateway
-    tag: main-20260717131452
+    tag: main-20260717213114
     pullPolicy: IfNotPresent
   hostNetwork:
     enabled: true
