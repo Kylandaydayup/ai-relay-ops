@@ -47,12 +47,16 @@ spec:
               set -e
               if [ -f /conf/app.conf ]; then
                 if [ -z "${driverName:-}" ]; then
-                  driverName="$(awk -F '= *' '$1 == "driverName" {gsub(/^"|"$/, "", $2); print $2; exit}' /conf/app.conf)"
+                  driverName="$(awk '$0 ~ /^driverName[[:space:]]*=/ {sub(/^[^=]*=[[:space:]]*/, ""); sub(/^[[:space:]]*"/, ""); sub(/"[[:space:]]*$/, ""); print; exit}' /conf/app.conf)"
                   export driverName
                 fi
                 if [ -z "${dataSourceName:-}" ]; then
-                  dataSourceName="$(awk -F '= *' '$1 == "dataSourceName" {sub(/^[[:space:]]*"/, "", $2); sub(/"[[:space:]]*$/, "", $2); print $2; exit}' /conf/app.conf)"
+                  dataSourceName="$(awk '$0 ~ /^dataSourceName[[:space:]]*=/ {sub(/^[^=]*=[[:space:]]*/, ""); sub(/^[[:space:]]*"/, ""); sub(/"[[:space:]]*$/, ""); print; exit}' /conf/app.conf)"
                   export dataSourceName
+                fi
+                if [ -z "${dbName:-}" ]; then
+                  dbName="$(awk '$0 ~ /^dbName[[:space:]]*=/ {sub(/^[^=]*=[[:space:]]*/, ""); sub(/^[[:space:]]*"/, ""); sub(/"[[:space:]]*$/, ""); print; exit}' /conf/app.conf)"
+                  export dbName
                 fi
               fi
               exec /bin/bash /docker-entrypoint.sh
@@ -63,6 +67,8 @@ spec:
             {{- end }}
             - name: driverName
               value: {{ .Values.config.driverName | quote }}
+            - name: dbName
+              value: {{ .Values.config.dbName | quote }}
             {{- if .Values.config.dataSourceName }}
             - name: dataSourceName
               value: {{ .Values.config.dataSourceName | quote }}

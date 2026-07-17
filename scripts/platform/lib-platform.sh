@@ -427,6 +427,9 @@ verify_rendered_manifest() {
       unless command.include?("bash") && args.include?("/docker-entrypoint.sh")
         errors << "casdoor postgres mode must use the startup wrapper before docker-entrypoint"
       end
+      if env["dbName"].to_s.strip.empty?
+        errors << "casdoor postgres mode requires non-empty dbName env"
+      end
       if casdoor_config
         app_conf = casdoor_config.dig("data", "app.conf").to_s
         db_name = app_conf.lines.find { |line| line.start_with?("dbName") }.to_s.split("=", 2).last.to_s.strip
@@ -492,6 +495,8 @@ if env.get("driverName") == "postgres":
         errors.append("casdoor postgres mode must pass dataSourceName env or parse it from /conf/app.conf before docker-entrypoint")
     if "bash" not in command or "/docker-entrypoint.sh" not in args:
         errors.append("casdoor postgres mode must use the startup wrapper before docker-entrypoint")
+    if not env.get("dbName", "").strip():
+        errors.append("casdoor postgres mode requires non-empty dbName env")
     if casdoor_config is not None:
         app_conf = ((casdoor_config or {}).get("data") or {}).get("app.conf") or ""
         db_name = ""
