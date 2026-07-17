@@ -55,6 +55,11 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 FROM ${RUNTIME_BASE_IMAGE}
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates \
+    && update-ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=builder2 /build/new-api /
 COPY LICENSE NOTICE THIRD-PARTY-LICENSES.md /licenses/
 EXPOSE 3000
