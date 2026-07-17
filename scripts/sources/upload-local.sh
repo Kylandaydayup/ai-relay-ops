@@ -106,6 +106,10 @@ upload_repo() {
     mkdir -p \"\\\$work_dir\"
     tar -xzf '$remote_tmp' -C \"\\\$work_dir\"
     rm -f '$remote_tmp'
+    if [ '$name' = 'ops' ] && [ -f '$remote_dir/config/build.env' ] && [ ! -f \"\\\$work_dir/config/build.env\" ]; then
+      mkdir -p \"\\\$work_dir/config\"
+      cp '$remote_dir/config/build.env' \"\\\$work_dir/config/build.env\"
+    fi
     cat > \"\\\$work_dir/.edream-source-meta\" <<'META'
 name=$name
 branch=${branch:-detached}
