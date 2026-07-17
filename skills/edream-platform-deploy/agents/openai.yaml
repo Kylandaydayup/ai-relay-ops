@@ -1,0 +1,4 @@
+interface:
+  display_name: "eDream Platform Deploy"
+  short_description: "Operate eDream k3s deployments."
+  default_prompt: "Use $edream-platform-deploy to build images, package releases, and deploy or upgrade an eDream platform environment."

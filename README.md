@@ -117,12 +117,39 @@ config/build.env.example        构建配置示例。
 config/build-81.env             81.71.122.120 构建机标准配置，可提交。
 config/build.env                本机私有构建配置，不提交。
 docker/                         构建镜像使用的 Dockerfile wrapper。
+skills/edream-platform-deploy/  AI agent 运维 skill，封装构建、部署、升级、卸载流程。
 scripts/images/                 单镜像和全量镜像构建脚本。
 scripts/platform/               install、upgrade、uninstall、render、package 脚本。
 scripts/sources/                源码同步和本地上传脚本。
 scripts/build/                  完整打包组合脚本。
 scripts/maintenance/            构建机清理脚本。
 ```
+
+## AI Agent Skill
+
+仓库内置 skill：
+
+```text
+skills/edream-platform-deploy/
+```
+
+这个 skill 面向使用 AI agent 执行运维任务的场景，覆盖：
+
+- 任意 k3s/Kubernetes 环境的参数收集和部署流程选择
+- 整包构建、安装、升级、卸载
+- 保留数据卸载重装
+- 单独镜像构建和替换验证
+- 多个镜像组合构建和替换
+- 离线镜像包加载
+- 备份和恢复操作
+
+使用时可以直接要求 agent：
+
+```text
+Use $edream-platform-deploy to build new-api and broker, deploy them to the 139 environment, and keep existing data.
+```
+
+skill 会要求补齐缺失参数，不应该擅自猜测生产环境配置或执行数据删除操作。
 
 ### 可提交配置
 
