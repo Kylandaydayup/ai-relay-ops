@@ -39,10 +39,33 @@ spec:
         - name: casdoor
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -c
+          args:
+            - |
+              set -e
+              if [ -f /conf/app.conf ]; then
+                if [ -z "${driverName:-}" ]; then
+                  driverName="$(awk -F '= *' '$1 == "driverName" {gsub(/^"|"$/, "", $2); print $2; exit}' /conf/app.conf)"
+                  export driverName
+                fi
+                if [ -z "${dataSourceName:-}" ]; then
+                  dataSourceName="$(awk -F '= *' '$1 == "dataSourceName" {sub(/^[[:space:]]*"/, "", $2); sub(/"[[:space:]]*$/, "", $2); print $2; exit}' /conf/app.conf)"
+                  export dataSourceName
+                fi
+              fi
+              exec /bin/bash /docker-entrypoint.sh
           env:
             {{- range $key, $value := .Values.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
+            {{- end }}
+            - name: driverName
+              value: {{ .Values.config.driverName | quote }}
+            {{- if .Values.config.dataSourceName }}
+            - name: dataSourceName
+              value: {{ .Values.config.dataSourceName | quote }}
             {{- end }}
           ports:
             - name: http
