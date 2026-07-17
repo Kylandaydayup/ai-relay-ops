@@ -129,13 +129,16 @@ require_command git
 require_command tar
 require_command mktemp
 
-targets="${UPLOAD_TARGETS:-broker new-api edreamcrowd}"
+targets="${UPLOAD_TARGETS:-ops broker new-api edreamcrowd}"
 if [ "${SYNC_CASDOOR:-0}" = "1" ] || [ "${BUILD_CASDOOR:-0}" = "1" ]; then
   targets="$targets casdoor"
 fi
 
 for target in $targets; do
   case "$target" in
+    ops)
+      upload_repo ops "$OPS_ROOT" "${REMOTE_OPS_DIR:-/data/edream-build/sources/ai-relay-ops}"
+      ;;
     broker)
       upload_repo broker "$(abs_path "${BROKER_UPLOAD_DIR:-../ai-relay-broker}")" "${BROKER_LOCAL_DIR:-/data/edream-build/sources/ai-relay-broker}"
       ;;

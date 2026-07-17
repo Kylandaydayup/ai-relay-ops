@@ -14,7 +14,10 @@ if grep -q "CHANGE_ME" "$DEPLOYMENT_FILE"; then
 fi
 
 helm_dependency_build
-helm template "$RELEASE_NAME" "$CHART_DIR" -n "$NAMESPACE" -f "$DEPLOYMENT_FILE" >/dev/null
+manifest_file="$(mktemp -t edream-platform-manifest.XXXXXX.yaml)"
+trap 'rm -f "$manifest_file"' EXIT
+helm template "$RELEASE_NAME" "$CHART_DIR" -n "$NAMESPACE" -f "$DEPLOYMENT_FILE" >"$manifest_file"
+verify_rendered_manifest "$manifest_file"
 verify_external_resources
 
 echo "preflight passed: env=$ENV_NAME release=$RELEASE_NAME namespace=$NAMESPACE"

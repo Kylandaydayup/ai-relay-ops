@@ -382,3 +382,98 @@ verify_external_resources() {
     exit 1
   fi
 }
+
+verify_rendered_manifest() {
+  local manifest_file=$1
+
+  if command -v ruby >/dev/null 2>&1; then
+    ruby -ryaml -e '
+    manifest = ARGF.read
+    deployments = YAML.load_stream(manifest).select { |doc|
+      doc.is_a?(Hash) && doc["kind"] == "Deployment"
+    }
+    casdoor = deployments.find { |doc|
+      containers = doc.dig("spec", "template", "spec", "containers") || []
+      containers.any? { |container| container.is_a?(Hash) && container["name"] == "casdoor" }
+    }
+    exit 0 unless casdoor
+
+    container = (casdoor.dig("spec", "template", "spec", "containers") || []).find { |item|
+      item.is_a?(Hash) && item["name"] == "casdoor"
+    }
+    env = {}
+    (container["env"] || []).each do |item|
+      next unless item.is_a?(Hash) && item["name"]
+      env[item["name"]] = item["value"].to_s
+    end
+    args = Array(container["args"]).join("\n")
+    command = Array(container["command"]).join(" ")
+    errors = []
+
+    if env["driverName"].to_s.strip.empty?
+      errors << "casdoor Deployment is missing non-empty driverName env"
+    end
+    if env["driverName"] == "postgres"
+      parses_config = args.include?("/conf/app.conf") && args.include?("dataSourceName") && args.include?("/docker-entrypoint.sh")
+      has_data_source_env = !env["dataSourceName"].to_s.strip.empty?
+      unless parses_config || has_data_source_env
+        errors << "casdoor postgres mode must pass dataSourceName env or parse it from /conf/app.conf before docker-entrypoint"
+      end
+      unless command.include?("bash") && args.include?("/docker-entrypoint.sh")
+        errors << "casdoor postgres mode must use the startup wrapper before docker-entrypoint"
+      end
+    end
+
+    if errors.any?
+      warn errors.join("\n")
+      exit 1
+    end
+    ' "$manifest_file"
+    return $?
+  fi
+
+  python3 - "$manifest_file" <<'PY'
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    docs = [doc for doc in yaml.safe_load_all(handle) if isinstance(doc, dict)]
+
+casdoor = None
+for doc in docs:
+    if doc.get("kind") != "Deployment":
+        continue
+    containers = (((doc.get("spec") or {}).get("template") or {}).get("spec") or {}).get("containers") or []
+    if any(isinstance(container, dict) and container.get("name") == "casdoor" for container in containers):
+        casdoor = doc
+        break
+
+if casdoor is None:
+    sys.exit(0)
+
+containers = (((casdoor.get("spec") or {}).get("template") or {}).get("spec") or {}).get("containers") or []
+container = next(item for item in containers if isinstance(item, dict) and item.get("name") == "casdoor")
+env = {
+    item.get("name"): str(item.get("value", ""))
+    for item in container.get("env", [])
+    if isinstance(item, dict) and item.get("name")
+}
+args = "\n".join(container.get("args") or [])
+command = " ".join(container.get("command") or [])
+errors = []
+
+if not env.get("driverName", "").strip():
+    errors.append("casdoor Deployment is missing non-empty driverName env")
+if env.get("driverName") == "postgres":
+    parses_config = "/conf/app.conf" in args and "dataSourceName" in args and "/docker-entrypoint.sh" in args
+    has_data_source_env = bool(env.get("dataSourceName", "").strip())
+    if not (parses_config or has_data_source_env):
+        errors.append("casdoor postgres mode must pass dataSourceName env or parse it from /conf/app.conf before docker-entrypoint")
+    if "bash" not in command or "/docker-entrypoint.sh" not in args:
+        errors.append("casdoor postgres mode must use the startup wrapper before docker-entrypoint")
+
+if errors:
+    print("\n".join(errors), file=sys.stderr)
+    sys.exit(1)
+PY
+}
