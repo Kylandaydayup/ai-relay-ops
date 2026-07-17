@@ -19,5 +19,6 @@ trap 'rm -f "$manifest_file"' EXIT
 helm template "$RELEASE_NAME" "$CHART_DIR" -n "$NAMESPACE" -f "$DEPLOYMENT_FILE" >"$manifest_file"
 verify_rendered_manifest "$manifest_file"
 verify_external_resources
+verify_external_casdoor_config
 
 echo "preflight passed: env=$ENV_NAME release=$RELEASE_NAME namespace=$NAMESPACE"

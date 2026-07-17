@@ -39,6 +39,7 @@ config:
   runMode: prod
   copyRequestBody: true
   driverName: postgres
+  dbName: casdoor
   origin: ""
   dataSourceName: ""
   authState: casdoor

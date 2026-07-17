@@ -397,6 +397,11 @@ verify_rendered_manifest() {
       containers.any? { |container| container.is_a?(Hash) && container["name"] == "casdoor" }
     }
     exit 0 unless casdoor
+    casdoor_config = YAML.load_stream(manifest).find { |doc|
+      doc.is_a?(Hash) &&
+        doc["kind"] == "ConfigMap" &&
+        doc.dig("data", "app.conf").to_s.include?("appname = casdoor")
+    }
 
     container = (casdoor.dig("spec", "template", "spec", "containers") || []).find { |item|
       item.is_a?(Hash) && item["name"] == "casdoor"
@@ -421,6 +426,13 @@ verify_rendered_manifest() {
       end
       unless command.include?("bash") && args.include?("/docker-entrypoint.sh")
         errors << "casdoor postgres mode must use the startup wrapper before docker-entrypoint"
+      end
+      if casdoor_config
+        app_conf = casdoor_config.dig("data", "app.conf").to_s
+        db_name = app_conf.lines.find { |line| line.start_with?("dbName") }.to_s.split("=", 2).last.to_s.strip
+        if db_name.empty?
+          errors << "casdoor postgres mode requires non-empty dbName in app.conf"
+        end
       end
     end
 
@@ -451,6 +463,15 @@ for doc in docs:
 if casdoor is None:
     sys.exit(0)
 
+casdoor_config = None
+for doc in docs:
+    if doc.get("kind") != "ConfigMap":
+        continue
+    app_conf = ((doc.get("data") or {}).get("app.conf") or "")
+    if "appname = casdoor" in app_conf:
+        casdoor_config = doc
+        break
+
 containers = (((casdoor.get("spec") or {}).get("template") or {}).get("spec") or {}).get("containers") or []
 container = next(item for item in containers if isinstance(item, dict) and item.get("name") == "casdoor")
 env = {
@@ -471,9 +492,58 @@ if env.get("driverName") == "postgres":
         errors.append("casdoor postgres mode must pass dataSourceName env or parse it from /conf/app.conf before docker-entrypoint")
     if "bash" not in command or "/docker-entrypoint.sh" not in args:
         errors.append("casdoor postgres mode must use the startup wrapper before docker-entrypoint")
+    if casdoor_config is not None:
+        app_conf = ((casdoor_config or {}).get("data") or {}).get("app.conf") or ""
+        db_name = ""
+        for line in app_conf.splitlines():
+            if line.startswith("dbName"):
+                db_name = line.split("=", 1)[-1].strip()
+                break
+        if not db_name:
+            errors.append("casdoor postgres mode requires non-empty dbName in app.conf")
 
 if errors:
     print("\n".join(errors), file=sys.stderr)
     sys.exit(1)
 PY
+}
+
+verify_external_casdoor_config() {
+  local casdoor_enabled config_create config_name driver_name
+  casdoor_enabled="$(yaml_get "$DEPLOYMENT_FILE" casdoor.enabled true)"
+  if [ "$casdoor_enabled" = "false" ]; then
+    return 0
+  fi
+
+  config_create="$(yaml_get "$DEPLOYMENT_FILE" casdoor.config.create true)"
+  if [ "$config_create" != "false" ]; then
+    return 0
+  fi
+
+  config_name="$(yaml_get "$DEPLOYMENT_FILE" casdoor.config.name "")"
+  if [ -z "$config_name" ]; then
+    echo "casdoor.config.name is required when casdoor.config.create=false" >&2
+    exit 1
+  fi
+
+  driver_name="$(kubectl get configmap "$config_name" -n "$NAMESPACE" -o jsonpath='{.data.app\.conf}' \
+    | awk -F '= *' '$1 == "driverName" {gsub(/^"|"$/, "", $2); print $2; exit}')"
+  if [ "$driver_name" != "postgres" ]; then
+    return 0
+  fi
+
+  local data_source_name db_name
+  data_source_name="$(kubectl get configmap "$config_name" -n "$NAMESPACE" -o jsonpath='{.data.app\.conf}' \
+    | awk -F '= *' '$1 == "dataSourceName" {sub(/^[[:space:]]*"/, "", $2); sub(/"[[:space:]]*$/, "", $2); print $2; exit}')"
+  db_name="$(kubectl get configmap "$config_name" -n "$NAMESPACE" -o jsonpath='{.data.app\.conf}' \
+    | awk -F '= *' '$1 == "dbName" {gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2; exit}')"
+
+  if [ -z "$data_source_name" ]; then
+    echo "external casdoor ConfigMap $config_name has empty dataSourceName in postgres mode" >&2
+    exit 1
+  fi
+  if [ -z "$db_name" ]; then
+    echo "external casdoor ConfigMap $config_name has empty dbName in postgres mode" >&2
+    exit 1
+  fi
 }

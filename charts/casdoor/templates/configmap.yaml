@@ -13,7 +13,7 @@ data:
     copyrequestbody = {{ .Values.config.copyRequestBody }}
     driverName = {{ .Values.config.driverName }}
     dataSourceName = {{ required "config.dataSourceName is required" .Values.config.dataSourceName | quote }}
-    dbName =
+    dbName = {{ required "config.dbName is required" .Values.config.dbName }}
     redisEndpoint =
     defaultStorageProvider =
     isCloudIntranet = false
