@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-env_file="${HARBOR_ENV_FILE:-build/harbor.env}"
-if [ -f "$env_file" ]; then
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$repo_root/scripts/lib/timing.sh"
+start_script_timer "${0##*/}"
+config_file="${BUILD_ENV_FILE:-$repo_root/config/build.env}"
+if [ -f "$config_file" ]; then
   # shellcheck disable=SC1090
-  . "$env_file"
+  . "$config_file"
 fi
 
 registry="${HARBOR_REGISTRY:-}"

@@ -1,6 +1,0 @@
-harbor:
-  registry: 81.71.122.120
-  baseProject: base-images
-  projectBaseProject: project-base-images
-  projectBaseTag: "20260716"
-  runtimeProject: platform

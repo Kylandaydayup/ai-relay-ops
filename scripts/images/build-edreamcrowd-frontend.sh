@@ -8,9 +8,9 @@ source_dir="$(abs_path "${EDREAMCROWD_LOCAL_DIR:-../EDreamCrowd}")"
 context="$source_dir/frontend"
 image="$(runtime_image_ref edreamcrowd-frontend "$source_dir")"
 nginx_base="$(require_base_image nginx:alpine)"
-edreamcrowd_node_base="$(require_project_base_image edreamcrowd-node-builder)"
+edreamcrowd_node_base="$(require_base_image node:20-alpine)"
 
-push_runtime_image "$context" "$OPS_ROOT/docker/edreamcrowd/frontend.Dockerfile" "$image" \
+push_image "$context" "$OPS_ROOT/docker/edreamcrowd/frontend.Dockerfile" "$image" \
   --build-arg "NODE_BASE_IMAGE=$edreamcrowd_node_base" \
   --build-arg "NGINX_BASE_IMAGE=$nginx_base" \
   --build-arg "VITE_PUBLIC_BASE=${VITE_PUBLIC_BASE:-/}"

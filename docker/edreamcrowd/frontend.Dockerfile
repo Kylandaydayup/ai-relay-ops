@@ -6,6 +6,9 @@ FROM ${NODE_BASE_IMAGE} AS build
 WORKDIR /app
 ARG VITE_PUBLIC_BASE
 ENV VITE_PUBLIC_BASE=${VITE_PUBLIC_BASE}
+COPY package.json package-lock.json ./
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 COPY . .
 RUN npm run build
 

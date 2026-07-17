@@ -5,7 +5,7 @@ set -euo pipefail
 init_platform_env "$@"
 ensure_kubeconfig
 
-"$(dirname "${BASH_SOURCE[0]}")/preflight.sh" "$ENV_NAME"
+"$(dirname "${BASH_SOURCE[0]}")/preflight.sh" -f "$DEPLOYMENT_FILE"
 
 if ! helm_release_exists; then
   echo "release does not exist, use install first: $RELEASE_NAME in $NAMESPACE" >&2

@@ -5,15 +5,26 @@ ARG RUNTIME_BASE_IMAGE=debian:latest
 FROM ${NODE_BASE_IMAGE} AS FRONT
 WORKDIR /web
 
+COPY ./web/package.json ./web/yarn.lock ./
+RUN --mount=type=cache,target=/usr/local/share/.cache/yarn \
+    yarn install --frozen-lockfile
 COPY ./web .
 RUN NODE_OPTIONS="--max-old-space-size=4096" yarn run build
 
 FROM ${GO_BASE_IMAGE} AS BACK
 WORKDIR /go/src/casdoor
+ARG GO_PROXY=https://goproxy.cn,direct
+ENV GOPROXY=${GO_PROXY}
 
+COPY go.mod go.sum ./
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    go mod download
 COPY . .
 
-RUN ./build.sh
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    ./build.sh
 
 FROM ${RUNTIME_BASE_IMAGE} AS ALLINONE
 LABEL MAINTAINER="https://casdoor.org/"

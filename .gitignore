@@ -3,3 +3,4 @@ charts/platform/charts/
 .build/
 dist/
 build/images.env
+config/build.env

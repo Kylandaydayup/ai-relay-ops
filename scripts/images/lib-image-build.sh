@@ -2,6 +2,7 @@
 set -euo pipefail
 
 OPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$OPS_ROOT/scripts/lib/timing.sh"
 
 require_command() {
   local name=$1
@@ -9,6 +10,17 @@ require_command() {
     echo "missing required command: $name" >&2
     exit 2
   fi
+}
+
+source_build_config() {
+  local config_file="${BUILD_ENV_FILE:-$OPS_ROOT/config/build.env}"
+  if [ ! -f "$config_file" ]; then
+    echo "missing build config: $config_file" >&2
+    echo "copy config/build.env.example to config/build.env or set BUILD_ENV_FILE" >&2
+    exit 2
+  fi
+  # shellcheck disable=SC1090
+  . "$config_file"
 }
 
 yaml_get() {
@@ -29,8 +41,7 @@ yaml_get() {
         break
       end
     end
-    value = cursor.nil? ? fallback : cursor
-    print value
+    print(cursor.nil? ? fallback : cursor)
     ' "$file" "$path" "$fallback"
     return 0
   fi
@@ -64,8 +75,7 @@ yaml_set_image() {
     file, path, repository, tag = ARGV
     data = YAML.load_file(file) || {}
     cursor = data
-    parts = path.split(".")
-    parts.each do |part|
+    path.split(".").each do |part|
       cursor[part] ||= {}
       cursor = cursor[part]
     end
@@ -113,72 +123,60 @@ abs_path() {
 git_label_for_dir() {
   local dir=$1
   local branch
-  local short_sha
   if [ -n "${IMAGE_REF_LABEL:-}" ]; then
     sanitize_ref "$IMAGE_REF_LABEL"
     return 0
   fi
-
   if ! git -C "$dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
-    printf 'local-nogit\n'
+    printf 'local\n'
     return 0
   fi
   branch="$(git -C "$dir" symbolic-ref --short HEAD 2>/dev/null || git -C "$dir" rev-parse --short HEAD)"
-  short_sha="$(git -C "$dir" rev-parse --short HEAD)"
-  printf '%s-%s\n' "$(sanitize_ref "$branch")" "$short_sha"
+  sanitize_ref "$branch"
 }
 
 init_image_build() {
-  if [ $# -lt 1 ]; then
-    echo "usage: $0 <134|139>" >&2
-    exit 2
-  fi
-
-  ENV_NAME=$1
-  ENV_DIR="$OPS_ROOT/environments/$ENV_NAME"
-  DEPLOYMENT_FILE="$ENV_DIR/edream-deployment.yaml"
-  HARBOR_FILE="$ENV_DIR/harbor.yaml"
-
-  if [ ! -f "$DEPLOYMENT_FILE" ]; then
-    echo "missing deployment file: $DEPLOYMENT_FILE" >&2
-    exit 2
-  fi
-  if [ ! -f "$HARBOR_FILE" ]; then
-    echo "missing Harbor file: $HARBOR_FILE" >&2
+  start_script_timer "${0##*/}"
+  if [ "$#" -ne 0 ]; then
+    echo "usage: $0" >&2
+    echo "image build scripts read config/build.env; they do not take environment names" >&2
     exit 2
   fi
 
   require_command docker
-  if ! command -v ruby >/dev/null 2>&1; then
-    python3 - <<'PY' >/dev/null
-import yaml
-PY
-  fi
+  source_build_config
 
-  if [ -f "${HARBOR_ENV_FILE:-$OPS_ROOT/build/harbor.env}" ]; then
-    # shellcheck disable=SC1090
-    . "${HARBOR_ENV_FILE:-$OPS_ROOT/build/harbor.env}"
-  fi
-
-  HARBOR_REGISTRY="$(yaml_get "$HARBOR_FILE" harbor.registry)"
-  BASE_IMAGE_PROJECT="$(yaml_get "$HARBOR_FILE" harbor.baseProject base-images)"
-  PROJECT_BASE_IMAGE_PROJECT="$(yaml_get "$HARBOR_FILE" harbor.projectBaseProject project-base-images)"
-  PROJECT_BASE_IMAGE_TAG="$(yaml_get "$HARBOR_FILE" harbor.projectBaseTag)"
-  RUNTIME_IMAGE_PROJECT="$(yaml_get "$HARBOR_FILE" harbor.runtimeProject platform)"
+  HARBOR_REGISTRY="${HARBOR_REGISTRY:?HARBOR_REGISTRY is required}"
+  HARBOR_BUILD_REGISTRY="${HARBOR_BUILD_REGISTRY:-$HARBOR_REGISTRY}"
+  HARBOR_BASE_PROJECT="${HARBOR_BASE_PROJECT:-base-images}"
+  HARBOR_RUNTIME_PROJECT="${HARBOR_RUNTIME_PROJECT:-platform}"
   IMAGE_TAG_TIMESTAMP="${IMAGE_TAG_TIMESTAMP:-$(date '+%Y%m%d%H%M%S')}"
   IMAGE_PLATFORM="${IMAGE_PLATFORM:-linux/amd64}"
 
-  if [ -z "$HARBOR_REGISTRY" ]; then
-    echo "missing harbor.registry in $HARBOR_FILE" >&2
-    exit 2
-  fi
-  if [ -z "$PROJECT_BASE_IMAGE_TAG" ]; then
-    echo "missing harbor.projectBaseTag in $HARBOR_FILE" >&2
-    exit 2
-  fi
+  BUILD_CACHE_ROOT="${BUILD_CACHE_ROOT:-${BUILD_ROOT:-$OPS_ROOT/.build}/cache}"
+  GO_CACHE_DIR="${GO_CACHE_DIR:-$BUILD_CACHE_ROOT/go}"
+  MAVEN_CACHE_DIR="${MAVEN_CACHE_DIR:-$BUILD_CACHE_ROOT/maven}"
+  NODE_CACHE_DIR="${NODE_CACHE_DIR:-$BUILD_CACHE_ROOT/node}"
+  BUN_CACHE_DIR="${BUN_CACHE_DIR:-$BUILD_CACHE_ROOT/bun}"
+  PIP_CACHE_DIR="${PIP_CACHE_DIR:-$BUILD_CACHE_ROOT/pip}"
+
+  mkdir -p "$GO_CACHE_DIR" "$MAVEN_CACHE_DIR" "$NODE_CACHE_DIR" "$BUN_CACHE_DIR" "$PIP_CACHE_DIR"
 
   if [ -n "${HARBOR_USERNAME:-}" ] && [ -n "${HARBOR_PASSWORD:-}" ]; then
     echo "$HARBOR_PASSWORD" | docker login "$HARBOR_REGISTRY" -u "$HARBOR_USERNAME" --password-stdin >/dev/null
+    if [ "$HARBOR_BUILD_REGISTRY" != "$HARBOR_REGISTRY" ]; then
+      echo "$HARBOR_PASSWORD" | docker login "$HARBOR_BUILD_REGISTRY" -u "$HARBOR_USERNAME" --password-stdin >/dev/null
+    fi
+  fi
+
+  export DOCKER_BUILDKIT="${DOCKER_BUILDKIT:-1}"
+  if [ "${USE_BUILDX:-1}" = "1" ]; then
+    require_command docker
+    if ! docker buildx version >/dev/null 2>&1; then
+      echo "docker buildx is required when USE_BUILDX=1" >&2
+      echo "install docker-buildx on the build host or set USE_BUILDX=0" >&2
+      exit 2
+    fi
   fi
 }
 
@@ -188,21 +186,19 @@ base_image_ref() {
   local repo="${ref_no_digest%:*}"
   local tag="${ref_no_digest##*:}"
   local name="${repo##*/}"
-  printf '%s/%s/%s:%s\n' "$HARBOR_REGISTRY" "$BASE_IMAGE_PROJECT" "$name" "$tag"
+  printf '%s/%s/%s:%s\n' "$HARBOR_BUILD_REGISTRY" "$HARBOR_BASE_PROJECT" "$name" "$tag"
 }
 
 ensure_base_image() {
   local public_image=$1
   local harbor_image
   harbor_image="$(base_image_ref "$public_image")"
-
   if ! docker pull --platform "$IMAGE_PLATFORM" "$harbor_image" >&2; then
     docker pull --platform "$IMAGE_PLATFORM" "$public_image" >&2
     docker tag "$public_image" "$harbor_image" >&2
     docker push "$harbor_image" >&2
     docker pull --platform "$IMAGE_PLATFORM" "$harbor_image" >&2
   fi
-
   printf '%s\n' "$harbor_image"
 }
 
@@ -219,144 +215,50 @@ require_image() {
   printf '%s\n' "$image"
 }
 
+require_base_image() {
+  local public_image=$1
+  require_image "$(base_image_ref "$public_image")"
+}
+
 runtime_image_ref() {
   local image_name=$1
   local source_dir=$2
   local label
   label="$(git_label_for_dir "$source_dir")"
   printf '%s/%s/%s:%s-%s\n' \
-    "$HARBOR_REGISTRY" "$RUNTIME_IMAGE_PROJECT" "$image_name" "$label" "$IMAGE_TAG_TIMESTAMP"
+    "$HARBOR_BUILD_REGISTRY" "$HARBOR_RUNTIME_PROJECT" "$image_name" "$label" "$IMAGE_TAG_TIMESTAMP"
 }
 
-project_base_image_ref() {
-  local image_name=$1
-  printf '%s/%s/%s:%s\n' \
-    "$HARBOR_REGISTRY" "$PROJECT_BASE_IMAGE_PROJECT" "$image_name" "$PROJECT_BASE_IMAGE_TAG"
-}
-
-require_base_image() {
-  local public_image=$1
-  require_image "$(base_image_ref "$public_image")"
-}
-
-require_project_base_image() {
-  local image_name=$1
-  require_image "$(project_base_image_ref "$image_name")"
-}
-
-ensure_project_base_image() {
-  local context=$1
-  local dockerfile=$2
-  local image=$3
-  shift 3
-
-  if [ "${FORCE_PROJECT_BASE_REBUILD:-0}" != "1" ] && docker image inspect "$image" >/dev/null 2>&1; then
+deployment_image_ref() {
+  local image=$1
+  if [ "$HARBOR_BUILD_REGISTRY" = "$HARBOR_REGISTRY" ]; then
     printf '%s\n' "$image"
     return 0
   fi
-  if [ "${SKIP_PROJECT_BASE_PUSH:-0}" = "1" ]; then
-    docker build --platform "$IMAGE_PLATFORM" \
-      --build-arg "BUILDPLATFORM=$IMAGE_PLATFORM" \
-      "$@" -f "$dockerfile" -t "$image" "$context" >&2
+  case "$image" in
+    "$HARBOR_BUILD_REGISTRY"/*)
+      printf '%s/%s\n' "$HARBOR_REGISTRY" "${image#"$HARBOR_BUILD_REGISTRY"/}"
+      ;;
+    *)
+      printf '%s\n' "$image"
+      ;;
+  esac
+}
+
+build_image_ref() {
+  local image=$1
+  if [ "$HARBOR_BUILD_REGISTRY" = "$HARBOR_REGISTRY" ]; then
     printf '%s\n' "$image"
     return 0
   fi
-  if [ "${FORCE_PROJECT_BASE_REBUILD:-0}" != "1" ] && docker pull --platform "$IMAGE_PLATFORM" "$image" >&2; then
-    printf '%s\n' "$image"
-    return 0
-  fi
-
-  if ! push_image "$context" "$dockerfile" "$image" "$@"; then
-    echo "failed to build and push project base image: $image" >&2
-    return 1
-  fi
-  if ! docker pull --platform "$IMAGE_PLATFORM" "$image" >&2; then
-    echo "failed to pull project base image after push: $image" >&2
-    return 1
-  fi
-  printf '%s\n' "$image"
-}
-
-ensure_python_service_runtime() {
-  local source_dir=$1
-  local python_base=$2
-  local image
-  image="$(project_base_image_ref python-service-runtime)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/python-service-runtime.Dockerfile" "$image" \
-    --build-arg "PYTHON_BASE_IMAGE=$python_base" \
-    --build-arg "PIP_INDEX_URL=${PIP_INDEX_URL:-https://pypi.tuna.tsinghua.edu.cn/simple}"
-}
-
-ensure_casdoor_web_builder() {
-  local source_dir=$1
-  local node_base=$2
-  local image
-  image="$(project_base_image_ref casdoor-web-builder)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/casdoor-web-builder.Dockerfile" "$image" \
-    --build-arg "NODE_BASE_IMAGE=$node_base"
-}
-
-ensure_casdoor_go_builder() {
-  local source_dir=$1
-  local go_base=$2
-  local image
-  image="$(project_base_image_ref casdoor-go-builder)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/casdoor-go-builder.Dockerfile" "$image" \
-    --build-arg "GO_BASE_IMAGE=$go_base" \
-    --build-arg "GOPROXY=${GOPROXY:-https://goproxy.cn,direct}"
-}
-
-ensure_casdoor_runtime() {
-  local debian_base=$1
-  local image
-  image="$(project_base_image_ref casdoor-runtime)"
-  ensure_project_base_image "$OPS_ROOT" "$OPS_ROOT/docker/project-base/casdoor-runtime.Dockerfile" "$image" \
-    --build-arg "DEBIAN_BASE_IMAGE=$debian_base"
-}
-
-ensure_new_api_bun_builder() {
-  local source_dir=$1
-  local bun_base=$2
-  local image
-  image="$(project_base_image_ref new-api-bun-builder)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/new-api-bun-builder.Dockerfile" "$image" \
-    --build-arg "BUN_BASE_IMAGE=$bun_base"
-}
-
-ensure_new_api_go_builder() {
-  local source_dir=$1
-  local go_base=$2
-  local image
-  image="$(project_base_image_ref new-api-go-builder)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/new-api-go-builder.Dockerfile" "$image" \
-    --build-arg "GO_BASE_IMAGE=$go_base" \
-    --build-arg "GOPROXY=${GOPROXY:-https://goproxy.cn,direct}"
-}
-
-ensure_new_api_runtime() {
-  local debian_base=$1
-  local image
-  image="$(project_base_image_ref new-api-runtime)"
-  ensure_project_base_image "$OPS_ROOT" "$OPS_ROOT/docker/project-base/new-api-runtime.Dockerfile" "$image" \
-    --build-arg "DEBIAN_BASE_IMAGE=$debian_base"
-}
-
-ensure_edreamcrowd_maven_builder() {
-  local source_dir=$1
-  local maven_base=$2
-  local image
-  image="$(project_base_image_ref edreamcrowd-maven-builder)"
-  ensure_project_base_image "$source_dir" "$OPS_ROOT/docker/project-base/edreamcrowd-maven-builder.Dockerfile" "$image" \
-    --build-arg "MAVEN_BASE_IMAGE=$maven_base"
-}
-
-ensure_edreamcrowd_node_builder() {
-  local source_dir=$1
-  local node_base=$2
-  local image
-  image="$(project_base_image_ref edreamcrowd-node-builder)"
-  ensure_project_base_image "$source_dir/frontend" "$OPS_ROOT/docker/project-base/edreamcrowd-node-builder.Dockerfile" "$image" \
-    --build-arg "NODE_BASE_IMAGE=$node_base"
+  case "$image" in
+    "$HARBOR_REGISTRY"/*)
+      printf '%s/%s\n' "$HARBOR_BUILD_REGISTRY" "${image#"$HARBOR_REGISTRY"/}"
+      ;;
+    *)
+      printf '%s\n' "$image"
+      ;;
+  esac
 }
 
 push_image() {
@@ -364,11 +266,28 @@ push_image() {
   local dockerfile=$2
   local image=$3
   shift 3
-
-  if docker buildx version >/dev/null 2>&1; then
+  if docker buildx version >/dev/null 2>&1 && [ "${USE_BUILDX:-1}" = "1" ]; then
+    local cache_args=()
+    if [ "${USE_BUILDX_LOCAL_CACHE:-0}" = "1" ]; then
+      local image_cache_name
+      local cache_dir
+      local next_cache_dir
+      image_cache_name="$(printf '%s' "${image##*/}" | tr ':/' '__')"
+      cache_dir="$BUILD_CACHE_ROOT/docker/$image_cache_name"
+      next_cache_dir="${cache_dir}.next"
+      rm -rf "$next_cache_dir"
+      mkdir -p "$cache_dir"
+      cache_args+=(--cache-from "type=local,src=$cache_dir")
+      cache_args+=(--cache-to "type=local,dest=$next_cache_dir,mode=max")
+    fi
     docker buildx build --push --platform "$IMAGE_PLATFORM" \
       --build-arg "BUILDPLATFORM=$IMAGE_PLATFORM" \
+      "${cache_args[@]}" \
       "$@" -f "$dockerfile" -t "$image" "$context"
+    if [ "${USE_BUILDX_LOCAL_CACHE:-0}" = "1" ]; then
+      rm -rf "$cache_dir"
+      mv "$next_cache_dir" "$cache_dir"
+    fi
   else
     docker build --platform "$IMAGE_PLATFORM" \
       --build-arg "BUILDPLATFORM=$IMAGE_PLATFORM" \
@@ -377,21 +296,23 @@ push_image() {
   fi
 }
 
-push_runtime_image() {
-  local context=$1
-  local dockerfile=$2
-  local image=$3
-  local network="${RUNTIME_BUILD_NETWORK:-none}"
-  shift 3
-
-  push_image "$context" "$dockerfile" "$image" --network "$network" "$@"
-}
-
 write_component_image() {
   local values_path=$1
   local image=$2
-  local repository="${image%:*}"
-  local tag="${image##*:}"
-  yaml_set_image "$DEPLOYMENT_FILE" "$values_path" "$repository" "$tag"
-  echo "updated $DEPLOYMENT_FILE: $values_path -> $image"
+  local values_file="${DEPLOYMENT_VALUES_FILE:-}"
+  if [ -z "$values_file" ]; then
+    echo "built image: $image"
+    echo "set DEPLOYMENT_VALUES_FILE to update a deployment values file automatically"
+    return 0
+  fi
+  if [ ! -f "$values_file" ]; then
+    echo "DEPLOYMENT_VALUES_FILE does not exist: $values_file" >&2
+    exit 2
+  fi
+  local deployment_image
+  deployment_image="$(deployment_image_ref "$image")"
+  local repository="${deployment_image%:*}"
+  local tag="${deployment_image##*:}"
+  yaml_set_image "$values_file" "$values_path" "$repository" "$tag"
+  echo "updated $values_file: $values_path -> $deployment_image"
 }

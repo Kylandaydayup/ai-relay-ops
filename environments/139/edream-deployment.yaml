@@ -51,7 +51,7 @@ new-api:
   instanceOverride: relay-new-api
   image:
     repository: 81.71.122.120/platform/relay-new-api
-    tag: main-20260717040752
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -78,7 +78,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: main-20260717053200
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -107,7 +107,7 @@ newapi-compat-gateway:
   instanceOverride: newapi-compat-gateway
   image:
     repository: 81.71.122.120/platform/newapi-compat-gateway
-    tag: main-20260717053200
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -122,7 +122,7 @@ broker:
   instanceOverride: relay-broker
   image:
     repository: 81.71.122.120/platform/relay-broker
-    tag: main-20260717053200
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   service:
     type: NodePort
@@ -152,7 +152,19 @@ broker:
       Grok Video 3 Pro","capabilities":["video"],"is_default":false,"supported_durations":[10]}]}'
     NEWAPI_CATALOG_REFRESH_ENABLED: 'true'
     DESKTOP_CONFIG_BRAND: edream
-    DESKTOP_PUBLIC_CONFIG_JSON: '{"brand":"edream","logto":{"issuer":"http://139.196.254.8/casdoor","clientIssuer":"http://auth.nexushome.top","clientId":"ec5db9ad91bb6b87656b","audience":["ec5db9ad91bb6b87656b","http://139.196.254.8/casdoor"],"jwksUri":"http://auth.nexushome.top/.well-known/jwks","enabledConnectors":[{"id":"password","type":"email_password","name":"点击登陆"}]},"subscription":{"casdoorOrg":"edream","validStates":["Active"],"manageUrl":"http://auth.nexushome.top/select-plan/edream/易苗梦剧场-包年订阅","relayBrokerBaseUrl":"http://api.nexushome.top/broker","modelRechargeUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","modelRechargeAmounts":[9.8,98,198,398,998]},"whitelabel":{"presetProvider":{"displayName":"易苗梦/eDream","mediaBaseUrl":"http://arcreel-api.nexushome.top/v1","agentMessagesUrl":"http://api.nexushome.top","agentApiKeyUrl":"http://auth.nexushome.top/products/edream/model-quota/buy","disableCustomProvider":false,"disableAgentCustom":false}}}'
+    DESKTOP_PUBLIC_CONFIG_JSON: "{\"brand\":\"edream\",\"logto\":{\"issuer\":\"http://139.196.254.8/casdoor\"\
+      ,\"clientIssuer\":\"http://auth.nexushome.top\",\"clientId\":\"ec5db9ad91bb6b87656b\"\
+      ,\"audience\":[\"ec5db9ad91bb6b87656b\",\"http://139.196.254.8/casdoor\"],\"\
+      jwksUri\":\"http://auth.nexushome.top/.well-known/jwks\",\"enabledConnectors\"\
+      :[{\"id\":\"password\",\"type\":\"email_password\",\"name\":\"\u70B9\u51FB\u767B\
+      \u9646\"}]},\"subscription\":{\"casdoorOrg\":\"edream\",\"validStates\":[\"\
+      Active\"],\"manageUrl\":\"http://auth.nexushome.top/select-plan/edream/\u6613\
+      \u82D7\u68A6\u5267\u573A-\u5305\u5E74\u8BA2\u9605\",\"relayBrokerBaseUrl\":\"\
+      http://api.nexushome.top/broker\",\"modelRechargeUrl\":\"http://auth.nexushome.top/products/edream/model-quota/buy\"\
+      ,\"modelRechargeAmounts\":[9.8,98,198,398,998]},\"whitelabel\":{\"presetProvider\"\
+      :{\"displayName\":\"\u6613\u82D7\u68A6/eDream\",\"mediaBaseUrl\":\"http://arcreel-api.nexushome.top/v1\"\
+      ,\"agentMessagesUrl\":\"http://api.nexushome.top\",\"agentApiKeyUrl\":\"http://auth.nexushome.top/products/edream/model-quota/buy\"\
+      ,\"disableCustomProvider\":false,\"disableAgentCustom\":false}}}"
     MODEL_RECHARGE_CASDOOR_OWNER: edream
     MODEL_RECHARGE_PRODUCT_NAME: model-quota
     MODEL_RECHARGE_PRODUCT_CODE: arcreel_builtin
@@ -184,7 +196,7 @@ casdoor:
   instanceOverride: casdoor
   image:
     repository: 81.71.122.120/platform/casdoor
-    tag: main-20260717040752
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   postgresWait:
     image:
@@ -214,7 +226,7 @@ edreamcrowd:
   backend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-backend
-      tag: main-20260717040752
+      tag: main-20260717131452
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -242,7 +254,7 @@ edreamcrowd:
   frontend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-frontend
-      tag: main-20260717040752
+      tag: main-20260717131452
       pullPolicy: IfNotPresent
     service:
       type: NodePort
@@ -261,7 +273,7 @@ gateway:
   fullnameOverride: platform-gateway
   image:
     repository: 81.71.122.120/platform/platform-gateway
-    tag: main-20260717040752
+    tag: main-20260717131452
     pullPolicy: IfNotPresent
   hostNetwork:
     enabled: true

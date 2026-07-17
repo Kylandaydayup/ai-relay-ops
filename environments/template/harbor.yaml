@@ -1,6 +1,0 @@
-harbor:
-  registry: registry.example.com
-  baseProject: base-images
-  projectBaseProject: project-base-images
-  projectBaseTag: "YYYYMMDD"
-  runtimeProject: platform

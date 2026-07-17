@@ -2,6 +2,9 @@
 set -euo pipefail
 
 registry="${1:?usage: configure-k3s-registry.sh <registry>}"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$repo_root/scripts/lib/timing.sh"
+start_script_timer "${0##*/}"
 registries_file="${REGISTRIES_FILE:-/etc/rancher/k3s/registries.yaml}"
 
 sudo mkdir -p "$(dirname "$registries_file")"

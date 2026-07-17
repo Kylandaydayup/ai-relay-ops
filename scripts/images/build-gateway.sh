@@ -8,7 +8,7 @@ source_dir="$OPS_ROOT"
 image="$(runtime_image_ref platform-gateway "$source_dir")"
 nginx_base="$(require_base_image nginx:alpine)"
 
-push_runtime_image "$OPS_ROOT" "$OPS_ROOT/docker/gateway/Dockerfile" "$image" \
+push_image "$OPS_ROOT" "$OPS_ROOT/docker/gateway/Dockerfile" "$image" \
   --build-arg "NGINX_BASE_IMAGE=$nginx_base"
 
 write_component_image "gateway.image" "$image"

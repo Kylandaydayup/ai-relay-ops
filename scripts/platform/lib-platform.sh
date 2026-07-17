@@ -2,6 +2,7 @@
 set -euo pipefail
 
 OPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$OPS_ROOT/scripts/lib/timing.sh"
 
 require_command() {
   local name=$1
@@ -54,14 +55,18 @@ PY
 }
 
 init_platform_env() {
-  if [ $# -lt 1 ]; then
-    echo "usage: $0 <134|139>" >&2
+  start_script_timer "${0##*/}"
+  if [ "$#" -eq 1 ] && [ -f "$1" ]; then
+    DEPLOYMENT_FILE="$1"
+  elif [ "$#" -eq 2 ] && [ "$1" = "-f" ]; then
+    DEPLOYMENT_FILE="$2"
+  else
+    echo "usage: $0 -f <deployment-values.yaml>" >&2
     exit 2
   fi
-
-  ENV_NAME=$1
-  ENV_DIR="$OPS_ROOT/environments/$ENV_NAME"
-  DEPLOYMENT_FILE="$ENV_DIR/edream-deployment.yaml"
+  if [[ "$DEPLOYMENT_FILE" != /* ]]; then
+    DEPLOYMENT_FILE="$OPS_ROOT/$DEPLOYMENT_FILE"
+  fi
   CHART_DIR="$OPS_ROOT/charts/platform"
 
   if [ ! -f "$DEPLOYMENT_FILE" ]; then
@@ -71,6 +76,7 @@ init_platform_env() {
 
   RELEASE_NAME="${RELEASE_NAME:-$(yaml_get "$DEPLOYMENT_FILE" deployment.releaseName platform)}"
   NAMESPACE="${NAMESPACE:-$(yaml_get "$DEPLOYMENT_FILE" namespace platform)}"
+  ENV_NAME="$(basename "$(dirname "$DEPLOYMENT_FILE")")"
 
   if [ -z "$RELEASE_NAME" ] || [ -z "$NAMESPACE" ]; then
     echo "deployment.releaseName and namespace are required in $DEPLOYMENT_FILE" >&2
@@ -94,7 +100,7 @@ helm_release_exists() {
 
 rollout_status_if_exists() {
   local resource=$1
-  local timeout=$2
+  local timeout=${2:-${ROLLOUT_TIMEOUT:-600s}}
 
   if kubectl get "$resource" -n "$NAMESPACE" >/dev/null 2>&1; then
     kubectl rollout status "$resource" -n "$NAMESPACE" --timeout="$timeout"
@@ -102,15 +108,114 @@ rollout_status_if_exists() {
 }
 
 wait_rollouts() {
-  rollout_status_if_exists statefulset/platform-postgres 240s
-  rollout_status_if_exists deployment/relay-new-api 180s
-  rollout_status_if_exists deployment/ai-provider-adapter 180s
-  rollout_status_if_exists deployment/newapi-compat-gateway 180s
-  rollout_status_if_exists deployment/relay-broker 180s
-  rollout_status_if_exists deployment/casdoor 180s
-  rollout_status_if_exists deployment/edreamcrowd-backend 240s
-  rollout_status_if_exists deployment/edreamcrowd-frontend 180s
-  rollout_status_if_exists deployment/platform-gateway 180s
+  local timeout="${ROLLOUT_TIMEOUT:-600s}"
+  rollout_status_if_exists statefulset/platform-postgres "$timeout"
+  rollout_status_if_exists deployment/relay-new-api "$timeout"
+  rollout_status_if_exists deployment/ai-provider-adapter "$timeout"
+  rollout_status_if_exists deployment/newapi-compat-gateway "$timeout"
+  rollout_status_if_exists deployment/relay-broker "$timeout"
+  rollout_status_if_exists deployment/casdoor "$timeout"
+  rollout_status_if_exists deployment/edreamcrowd-backend "$timeout"
+  rollout_status_if_exists deployment/edreamcrowd-frontend "$timeout"
+  rollout_status_if_exists deployment/platform-gateway "$timeout"
+}
+
+deployment_images() {
+  if command -v ruby >/dev/null 2>&1; then
+    ruby -ryaml -e '
+    file = ARGV[0]
+    data = YAML.load_file(file) || {}
+    def dig_hash(data, *keys)
+      keys.reduce(data) { |memo, key| memo.is_a?(Hash) ? memo[key] : nil }
+    end
+    specs = [
+      [["postgres"], ["postgres", "enabled"]],
+      [["databaseInit"], ["databaseInit", "enabled"]],
+      [["new-api"], ["new-api", "enabled"]],
+      [["broker"], ["broker", "enabled"]],
+      [["ai-provider-adapter"], ["ai-provider-adapter", "enabled"]],
+      [["newapi-compat-gateway"], ["newapi-compat-gateway", "enabled"]],
+      [["casdoor"], ["casdoor", "enabled"]],
+      [["gateway"], ["gateway", "enabled"]],
+      [["edreamcrowd", "backend"], ["edreamcrowd", "enabled"]],
+      [["edreamcrowd", "frontend"], ["edreamcrowd", "enabled"]]
+    ]
+    images = []
+    specs.each do |path, enabled_path|
+      next if dig_hash(data, *enabled_path) == false
+      image = dig_hash(data, *path, "image")
+      next unless image.is_a?(Hash)
+      repository = image["repository"]
+      tag = image["tag"]
+      next if repository.nil? || repository.empty? || tag.nil? || tag.empty?
+      images << "#{repository}:#{tag}"
+    end
+    puts images.uniq
+    ' "$1"
+    return 0
+  fi
+
+  python3 - "$1" <<'PY'
+import sys
+import yaml
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    data = yaml.safe_load(handle) or {}
+
+def dig(*keys):
+    cursor = data
+    for key in keys:
+        if not isinstance(cursor, dict):
+            return None
+        cursor = cursor.get(key)
+    return cursor
+
+specs = [
+    (("postgres",), ("postgres", "enabled")),
+    (("databaseInit",), ("databaseInit", "enabled")),
+    (("new-api",), ("new-api", "enabled")),
+    (("broker",), ("broker", "enabled")),
+    (("ai-provider-adapter",), ("ai-provider-adapter", "enabled")),
+    (("newapi-compat-gateway",), ("newapi-compat-gateway", "enabled")),
+    (("casdoor",), ("casdoor", "enabled")),
+    (("gateway",), ("gateway", "enabled")),
+    (("edreamcrowd", "backend"), ("edreamcrowd", "enabled")),
+    (("edreamcrowd", "frontend"), ("edreamcrowd", "enabled")),
+]
+images = []
+for path, enabled_path in specs:
+    if dig(*enabled_path) is False:
+        continue
+    image = dig(*path, "image")
+    if not isinstance(image, dict):
+        continue
+    repository = image.get("repository")
+    tag = image.get("tag")
+    if repository and tag:
+        images.append(f"{repository}:{tag}")
+for image in dict.fromkeys(images):
+    print(image)
+PY
+}
+
+import_image_archive() {
+  local image_archive=$1
+  echo "loading packaged images: $image_archive"
+  if command -v docker >/dev/null 2>&1; then
+    docker load -i "$image_archive"
+    return 0
+  fi
+  if command -v k3s >/dev/null 2>&1; then
+    k3s ctr -n k8s.io images import "$image_archive"
+    return 0
+  fi
+  if command -v ctr >/dev/null 2>&1; then
+    ctr -n k8s.io images import "$image_archive"
+    return 0
+  fi
+
+  echo "missing image loader: docker, k3s, or ctr is required for packaged images" >&2
+  exit 2
 }
 
 kept_resources() {

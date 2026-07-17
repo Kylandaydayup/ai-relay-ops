@@ -2,6 +2,9 @@
 set -euo pipefail
 
 registry="${1:?usage: configure-docker-registry.sh <registry>}"
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+. "$repo_root/scripts/lib/timing.sh"
+start_script_timer "${0##*/}"
 daemon_file="${DOCKER_DAEMON_FILE:-/etc/docker/daemon.json}"
 
 sudo mkdir -p "$(dirname "$daemon_file")"
