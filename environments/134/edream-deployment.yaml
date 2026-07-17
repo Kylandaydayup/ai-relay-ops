@@ -57,6 +57,7 @@ new-api:
   env:
     TZ: Asia/Shanghai
     NODE_NAME: relay-new-api-staging-1
+    TLS_INSECURE_SKIP_VERIFY: "true"
   secret:
     create: false
     SQL_DSN: ''

@@ -60,6 +60,7 @@ new-api:
   env:
     TZ: Asia/Shanghai
     NODE_NAME: relay-new-api-staging-1
+    TLS_INSECURE_SKIP_VERIFY: "true"
   postgresWait:
     image:
       repository: 81.71.122.120/base-images/postgres
