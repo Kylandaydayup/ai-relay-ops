@@ -198,19 +198,19 @@ edreamcrowd:
   backend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-backend
-      tag: main-20260717213114
+      tag: main-20260726043000
       pullPolicy: IfNotPresent
     service:
-      type: NodePort
+      type: ClusterIP
       port: 8080
-      nodePort: 30083
     env:
       SPRING_DATASOURCE_URL: jdbc:postgresql://platform-postgres:5432/edreamcrowd
       SPRING_DATASOURCE_USERNAME: edreamcrowd
-      CASDOOR_ENDPOINT: http://auth.nexushome.top
+      CASDOOR_ENDPOINT: https://auth.ymmjc.com
       CASDOOR_APPLICATION_NAME: eDream_web
       CASDOOR_ORGANIZATION_NAME: edream
-      APP_FRONTEND_URL: http://zhongchou.nexushome.top/zhongchou/
+      CASDOOR_PAYMENT_PROVIDER: provider_payment_dummy
+      APP_FRONTEND_URL: https://zhongchou.ymmjc.com/zhongchou/
     secret:
       SPRING_DATASOURCE_PASSWORD: ''
       JASYPT_ENCRYPTOR_PASSWORD: ''
@@ -221,14 +221,14 @@ edreamcrowd:
   frontend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-frontend
-      tag: main-20260717213114
+      tag: main-20260726043000
       pullPolicy: IfNotPresent
     service:
-      type: NodePort
+      type: ClusterIP
       port: 80
-      nodePort: 30084
     runtimeConfig:
       edreamDownloadUrl: https://download.arc-reel.com/edream/latest
+      frontendUrl: https://zhongchou.ymmjc.com
   resources:
     requests:
       memory: 256Mi
