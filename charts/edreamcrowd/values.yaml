@@ -22,6 +22,8 @@ backend:
     CASDOOR_ENDPOINT: ""
     CASDOOR_APPLICATION_NAME: eDream_web
     CASDOOR_ORGANIZATION_NAME: edream
+    CASDOOR_PAYMENT_PROVIDER: wechat-provider
+    CASDOOR_PAYMENT_PRODUCT_ID: zhongchou
     APP_FRONTEND_URL: ""
   postgresWait:
     enabled: true
