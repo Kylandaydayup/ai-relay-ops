@@ -263,6 +263,7 @@ edreamcrowd:
       nodePort: 30084
     runtimeConfig:
       edreamDownloadUrl: https://download.arc-reel.com/edream/latest
+      frontendUrl: http://zhongchou.nexushome.top
   resources:
     requests:
       memory: 256Mi

@@ -67,6 +67,7 @@ frontend:
     clientMaxBodySize: 500m
   runtimeConfig:
     edreamDownloadUrl: https://download.arc-reel.com/edream/latest
+    frontendUrl: ""
   probes:
     readiness:
       path: /

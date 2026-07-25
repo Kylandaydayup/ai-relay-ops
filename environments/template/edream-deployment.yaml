@@ -193,6 +193,7 @@ edreamcrowd:
       nodePort: null
     runtimeConfig:
       edreamDownloadUrl: https://download.example.com/edream/latest
+      frontendUrl: http://zhongchou.example.com
   resources:
     requests:
       memory: 256Mi

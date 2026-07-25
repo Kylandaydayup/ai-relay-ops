@@ -7,7 +7,8 @@ metadata:
 data:
   runtime-config.js: |
     window.__EDREAM_CONFIG__ = {
-      edreamDownloadUrl: {{ .Values.frontend.runtimeConfig.edreamDownloadUrl | default "https://download.arc-reel.com/edream/latest" | toJson }}
+      edreamDownloadUrl: {{ .Values.frontend.runtimeConfig.edreamDownloadUrl | default "https://download.arc-reel.com/edream/latest" | toJson }},
+      frontendUrl: {{ .Values.frontend.runtimeConfig.frontendUrl | default "" | toJson }}
     };
   default.conf: |
     server {
