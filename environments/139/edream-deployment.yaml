@@ -239,7 +239,7 @@ edreamcrowd:
       CASDOOR_ENDPOINT: http://auth.nexushome.top
       CASDOOR_APPLICATION_NAME: eDream_web
       CASDOOR_ORGANIZATION_NAME: edream
-      CASDOOR_PAYMENT_PROVIDER: provider_payment_dummy
+      CASDOOR_PAYMENT_PROVIDER: wechat-provider
       CASDOOR_PAYMENT_PRODUCT_ID: zhongchou
       APP_FRONTEND_URL: http://zhongchou.nexushome.top/zhongchou/
     postgresWait:
