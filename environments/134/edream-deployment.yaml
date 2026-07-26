@@ -198,7 +198,7 @@ edreamcrowd:
   backend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-backend
-      tag: main-20260726043000
+      tag: main-20260726192134
       pullPolicy: IfNotPresent
     service:
       type: ClusterIP
@@ -221,7 +221,7 @@ edreamcrowd:
   frontend:
     image:
       repository: 81.71.122.120/platform/edreamcrowd-frontend
-      tag: main-20260726043000
+      tag: main-20260726191639
       pullPolicy: IfNotPresent
     service:
       type: ClusterIP
