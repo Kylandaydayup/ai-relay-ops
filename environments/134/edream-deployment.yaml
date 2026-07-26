@@ -209,7 +209,7 @@ edreamcrowd:
       CASDOOR_ENDPOINT: https://auth.ymmjc.com
       CASDOOR_APPLICATION_NAME: eDream_web
       CASDOOR_ORGANIZATION_NAME: edream
-      CASDOOR_PAYMENT_PROVIDER: provider_payment_dummy
+      CASDOOR_PAYMENT_PROVIDER: wechat-provider
       APP_FRONTEND_URL: https://zhongchou.ymmjc.com/zhongchou/
     secret:
       SPRING_DATASOURCE_PASSWORD: ''
