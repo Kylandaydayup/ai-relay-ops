@@ -48,6 +48,11 @@ spec:
                 secretKeyRef:
                   name: {{ include "ai-provider-adapter.secretName" . }}
                   key: KEYIYUN_API_KEY
+            - name: LINGZHI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "ai-provider-adapter.secretName" . }}
+                  key: LINGZHI_API_KEY
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}

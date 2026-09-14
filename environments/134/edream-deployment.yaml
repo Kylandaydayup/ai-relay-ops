@@ -71,7 +71,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: main-20260717213114
+    tag: wan3-formal-20260915-001
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -79,13 +79,15 @@ ai-provider-adapter:
     nodePort: null
   env:
     AI_PROVIDER_ADAPTER_DEFAULT_PROVIDER: moma_seedance
-    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok"}'
+    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok","wan3_480p":"lingzhi_wan3","wan3_720p":"lingzhi_wan3","mdl_ec286eb1bc618249d65b87bc79366417":"lingzhi_wan3"}'
     MOMA_SEEDANCE_BASE_URL: https://zhenze-huhehaote.cmecloud.cn
     MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
     MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: 'false'
     KEYIYUN_BASE_URL: https://zcbservice.aizfw.cn/kyyReactApiServer
     KEYIYUN_VEO_CREATE_PATH: "/v1/veo/videos"
     KEYIYUN_GROK_CREATE_PATH: "/v1/grok/videos"
+    LINGZHI_BASE_URL: https://api.erchun.youkou.cc
+    LINGZHI_DEFAULT_RESOLUTION: "480p"
     LOG_LEVEL: ERROR
     TOP_LOGGER_LEVEL: ERROR
     TASK_LOGGER_LEVEL: ERROR
@@ -93,6 +95,7 @@ ai-provider-adapter:
     create: false
     MOMA_SEEDANCE_API_KEY: ''
     KEYIYUN_API_KEY: ''
+    LINGZHI_API_KEY: ''
     name: ai-provider-adapter-secret
 newapi-compat-gateway:
   enabled: true
