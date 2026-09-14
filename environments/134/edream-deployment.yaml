@@ -71,7 +71,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: wan3-formal-20260915-001
+    tag: wan3-formal-20260915-003
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -79,7 +79,7 @@ ai-provider-adapter:
     nodePort: null
   env:
     AI_PROVIDER_ADAPTER_DEFAULT_PROVIDER: moma_seedance
-    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok","wan3_480p":"lingzhi_wan3","wan3_720p":"lingzhi_wan3","mdl_ec286eb1bc618249d65b87bc79366417":"lingzhi_wan3"}'
+    AI_PROVIDER_ADAPTER_MODEL_PROVIDER_MAP: '{"doubao-seedance-2.0":"moma_seedance","AICC-doubao-seedance-2.0":"moma_seedance","doubao-seedance-2-0-260128":"moma_seedance","veo_3_1_fast":"keyiyun_veo","veo_3_1_fast_stable":"keyiyun_veo","veo3_fast":"keyiyun_veo","grok_video3":"keyiyun_grok","grok_video3_pro":"keyiyun_grok","grok-4-fast":"keyiyun_grok","wan3_480p":"lingzhi_wan3","wan3_720p":"lingzhi_wan3","wan3_1080p":"lingzhi_wan3","mdl_ec286eb1bc618249d65b87bc79366417":"lingzhi_wan3","mdl_8cd89f452f8dcec9e9f6ceaa6cf94342":"lingzhi_wan3"}'
     MOMA_SEEDANCE_BASE_URL: https://zhenze-huhehaote.cmecloud.cn
     MOMA_SEEDANCE_MODEL: doubao-seedance-2.0
     MOMA_SEEDANCE_ENABLE_VIDEO_ENCRYPT: 'false'
