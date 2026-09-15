@@ -71,7 +71,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: wan3-formal-20260915-003
+    tag: main-20260916023253
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
