@@ -48,7 +48,7 @@ new-api:
   instanceOverride: relay-new-api
   image:
     repository: 81.71.122.120/platform/relay-new-api
-    tag: main-20260717213114
+    tag: main-20260916014217
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
