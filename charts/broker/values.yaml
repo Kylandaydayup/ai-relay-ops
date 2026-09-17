@@ -45,6 +45,8 @@ env:
   MODEL_RECHARGE_WALLET_GROUP: all
   MODEL_RECHARGE_QUOTA_PER_CNY: "100"
 
+extraEnv: []
+
 postgresWait:
   enabled: true
   image:

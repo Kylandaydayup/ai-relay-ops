@@ -58,9 +58,7 @@ new-api:
     TZ: Asia/Shanghai
     NODE_NAME: relay-new-api-staging-1
     TLS_INSECURE_SKIP_VERIFY: "true"
-    CRITICAL_RATE_LIMIT_ENABLE: "true"
-    CRITICAL_RATE_LIMIT: "2000"
-    CRITICAL_RATE_LIMIT_DURATION: "1200"
+    # Deferred rate-limit settings are in new-api-rate-limit.pending.yaml.
   secret:
     create: false
     SQL_DSN: ''
@@ -160,6 +158,9 @@ broker:
     MODEL_RECHARGE_PLAN_CODE: model-quota
     MODEL_RECHARGE_WALLET_GROUP: all
     MODEL_RECHARGE_QUOTA_PER_CNY: '100'
+  extraEnv:
+    - name: NEWAPI_CATALOG_REFRESH_ENABLED
+      value: "true"
   modelRechargeSync:
     enabled: true
     schedule: "*/10 * * * *"

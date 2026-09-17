@@ -91,6 +91,9 @@ spec:
                 secretKeyRef:
                   name: {{ include "broker.secretName" . }}
                   key: CASDOOR_DATABASE_URL
+            {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: {{ .Values.probes.readiness.path }}
