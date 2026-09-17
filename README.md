@@ -753,6 +753,8 @@ scripts/platform/upgrade.sh -f environments/139/edream-deployment.yaml
 
 ## 十四、单镜像修改验证
 
+Adapter 的源码边界、134 当前基线、标准构建、受限 Helm 预检、验收与回滚见 [Adapter 开发与升级](docs/adapter-maintenance.md)。单独发布 Adapter 优先使用 `scripts/platform/upgrade-adapter.sh`：默认只预检，发现其他组件有差异时停止，确认后追加 `--apply`。首次同步必须先核对旧 Helm 状态，不能直接回滚到旧 revision。
+
 场景：只验证 new-api 修改，不想完整重装平台。
 
 ### 标准方式：构建镜像，更新 values，Helm upgrade

@@ -69,6 +69,7 @@ for script in \
   scripts/platform/package.sh \
   scripts/platform/install.sh \
   scripts/platform/upgrade.sh \
+  scripts/platform/upgrade-adapter.sh \
   scripts/platform/uninstall.sh \
   scripts/platform/status.sh \
   scripts/maintenance/cleanup-build-host.sh \
@@ -76,6 +77,9 @@ for script in \
   scripts/harbor/check.sh; do
   require_executable "$script"
 done
+
+require_file scripts/platform/check-adapter-upgrade.py
+require_file docs/adapter-maintenance.md
 
 for script in scripts/images/base/*.sh; do
   require_executable "$script"

@@ -74,7 +74,7 @@ ai-provider-adapter:
   instanceOverride: ai-provider-adapter
   image:
     repository: 81.71.122.120/platform/ai-provider-adapter
-    tag: main-20260916023253
+    tag: wan3-content-7a9a137-20260917095000@sha256:d88a698f10b172bdd764543a004e315bc8bd32a2a9d577e8e3888259a35dbdab
     pullPolicy: IfNotPresent
   service:
     type: ClusterIP
@@ -91,6 +91,7 @@ ai-provider-adapter:
     KEYIYUN_GROK_CREATE_PATH: "/v1/grok/videos"
     LINGZHI_BASE_URL: https://api.erchun.youkou.cc
     LINGZHI_DEFAULT_RESOLUTION: "480p"
+    LINGZHI_FETCH_TIMEOUT_SECONDS: "10"
     LOG_LEVEL: ERROR
     TOP_LOGGER_LEVEL: ERROR
     TASK_LOGGER_LEVEL: ERROR

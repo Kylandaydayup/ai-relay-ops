@@ -36,6 +36,7 @@ cp -R "$OPS_ROOT/scripts/maintenance" "$dist_dir/scripts/"
 cp -R "$OPS_ROOT/scripts/lib" "$dist_dir/scripts/"
 cp "$OPS_ROOT/scripts/verify-standard-deployment.sh" "$dist_dir/scripts/verify-standard-deployment.sh"
 cp -R "$OPS_ROOT/docker/." "$dist_dir/docker/"
+cp -R "$OPS_ROOT/docs/." "$dist_dir/docs/"
 cp "$OPS_ROOT/README.md" "$dist_dir/README.md"
 
 find "$dist_dir/scripts" -type f -name "*.sh" -exec chmod +x {} \;

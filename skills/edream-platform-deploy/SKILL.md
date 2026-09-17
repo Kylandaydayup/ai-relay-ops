@@ -13,6 +13,7 @@ Use this skill to operate the `ai-relay-ops` repository. It provides the workflo
 - Never print secrets. Use environment variables, local secret files, Kubernetes Secrets, or user-provided secure channels.
 - Never run `DELETE_DATA=1`, `kubectl delete pvc`, `docker volume prune`, or destructive k3s reset commands unless the user explicitly confirms the exact target environment and data deletion intent.
 - Treat `kubectl set image` as temporary validation only. If validation succeeds, update the target `environments/<env>/edream-deployment.yaml` and run Helm upgrade for the durable state.
+- For an adapter-only upgrade, follow `docs/adapter-maintenance.md` and run `scripts/platform/upgrade-adapter.sh -f <values>` first. It is read-only by default; use `--apply` only after the non-adapter resource checks pass. Never disable other umbrella-chart components or blindly roll back stale Helm revisions to isolate the adapter.
 - Preserve `config/build.env` on build hosts. It is local runtime configuration and must not be overwritten by source sync.
 - Prefer platform scripts over raw Helm commands: `scripts/platform/install.sh`, `upgrade.sh`, `uninstall.sh`, `preflight.sh`, `status.sh`.
 

@@ -4,3 +4,4 @@ charts/platform/charts/
 dist/
 build/images.env
 config/build.env
+__pycache__/
