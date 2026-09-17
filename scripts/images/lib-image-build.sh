@@ -14,6 +14,8 @@ require_command() {
 
 source_build_config() {
   local config_file="${BUILD_ENV_FILE:-$OPS_ROOT/config/build.env}"
+  local values_override="${DEPLOYMENT_VALUES_FILE-}"
+  local values_override_set="${DEPLOYMENT_VALUES_FILE+x}"
   if [ ! -f "$config_file" ]; then
     echo "missing build config: $config_file" >&2
     echo "copy config/build.env.example to config/build.env or set BUILD_ENV_FILE" >&2
@@ -21,6 +23,9 @@ source_build_config() {
   fi
   # shellcheck disable=SC1090
   . "$config_file"
+  if [ "$values_override_set" = "x" ]; then
+    DEPLOYMENT_VALUES_FILE="$values_override"
+  fi
 }
 
 yaml_get() {

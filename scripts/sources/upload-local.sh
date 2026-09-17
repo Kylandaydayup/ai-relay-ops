@@ -4,6 +4,7 @@ set -euo pipefail
 OPS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 . "$OPS_ROOT/scripts/lib/timing.sh"
 start_script_timer "${0##*/}"
+upload_targets_override="${UPLOAD_TARGETS-}"
 
 config_file="${BUILD_ENV_FILE:-$OPS_ROOT/config/build.env}"
 if [ -f "$config_file" ]; then
@@ -54,7 +55,7 @@ upload_repo() {
   local local_dir=$2
   local remote_dir=$3
 
-  if [ ! -d "$local_dir/.git" ]; then
+  if ! git -C "$local_dir" rev-parse --is-inside-work-tree >/dev/null 2>&1; then
     echo "$name local source is not a git repository: $local_dir" >&2
     exit 2
   fi
@@ -96,29 +97,33 @@ upload_repo() {
   "${scp_bin[@]}" $ssh_opts "$archive" "$ssh_target:$remote_tmp"
   rm -f "$archive"
   trap - RETURN
-  local remote_parent remote_stamp
+  local remote_parent remote_stamp snapshot_root
   remote_parent="${remote_dir%/*}"
   remote_stamp="$(date +%Y%m%d%H%M%S)"
+  snapshot_root="${BUILD_ROOT:-/data/edream-build}/source-snapshots"
   run_remote "set -euo pipefail
+    umask 077
     stamp='$remote_stamp'
-    mkdir -p /data/edream-build/source-snapshots '$remote_parent'
-    work_dir='${remote_dir}.upload-'\$stamp
-    mkdir -p \"\\\$work_dir\"
-    tar -xzf '$remote_tmp' -C \"\\\$work_dir\"
+    mkdir -p '$snapshot_root' '$remote_parent'
+    work_dir=\$(mktemp -d '${remote_dir}.upload-'\$stamp.XXXXXX)
+    snapshot='$snapshot_root/${name}-'\$stamp-\${work_dir##*.}
+    test ! -e \"\$snapshot\"
+    tar -xzf '$remote_tmp' -C \"\$work_dir\"
     rm -f '$remote_tmp'
-    if [ '$name' = 'ops' ] && [ -f '$remote_dir/config/build.env' ] && [ ! -f \"\\\$work_dir/config/build.env\" ]; then
-      mkdir -p \"\\\$work_dir/config\"
-      cp '$remote_dir/config/build.env' \"\\\$work_dir/config/build.env\"
+    if [ '$name' = 'ops' ] && [ -f '$remote_dir/config/build.env' ] && [ ! -f \"\$work_dir/config/build.env\" ]; then
+      mkdir -p \"\$work_dir/config\"
+      cp '$remote_dir/config/build.env' \"\$work_dir/config/build.env\"
+      chmod 600 \"\$work_dir/config/build.env\"
     fi
-    cat > \"\\\$work_dir/.edream-source-meta\" <<'META'
+    cat > \"\$work_dir/.edream-source-meta\" <<'META'
 name=$name
 branch=${branch:-detached}
 commit=$commit
 META
     if [ -e '$remote_dir' ]; then
-      mv '$remote_dir' \"/data/edream-build/source-snapshots/${name}-\"\$stamp
+      mv '$remote_dir' \"\$snapshot\"
     fi
-    mv \"\\\$work_dir\" '$remote_dir'
+    mv \"\$work_dir\" '$remote_dir'
     echo '$name remote ready:' '${branch:-detached}' '$commit'
   "
   echo "$name upload completed"
@@ -133,7 +138,7 @@ require_command git
 require_command tar
 require_command mktemp
 
-targets="${UPLOAD_TARGETS:-ops broker new-api edreamcrowd}"
+targets="${upload_targets_override:-${UPLOAD_TARGETS:-ops broker new-api edreamcrowd}}"
 if [ "${SYNC_CASDOOR:-0}" = "1" ] || [ "${BUILD_CASDOOR:-0}" = "1" ]; then
   targets="$targets casdoor"
 fi
