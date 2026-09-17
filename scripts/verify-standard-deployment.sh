@@ -79,6 +79,7 @@ for script in \
 done
 
 require_file scripts/platform/check-adapter-upgrade.py
+require_file scripts/images/verify-ai-provider-adapter.py
 require_file docs/adapter-maintenance.md
 
 for script in scripts/images/base/*.sh; do

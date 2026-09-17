@@ -48,19 +48,31 @@ UPLOAD_TARGETS="ops broker" \
 scripts/sources/upload-local.sh
 ```
 
-4. 在构建机执行标准 Adapter 构建，不构建其他镜像：
+上传入口支持普通 checkout 和 Git worktree；显式 UPLOAD_TARGETS 优先于配置文件默认值。上传使用唯一临时目录，解包成功后才替换源码，原 checkout 保留在构建机 source-snapshots 中，并保留私有 config/build.env（600 权限）。构建前核对两个目录的 .edream-source-meta，不能用旧 Broker 快照重新打包 Adapter。
+
+4. 在构建机执行标准 Adapter 构建，不构建其他镜像、不自动改写任何环境 values：
 
 ```bash
 ssh ubuntu@81.71.122.120
 cd /data/edream-build/sources/ai-relay-ops
-BUILD_ENV_FILE=config/build-81.env \
-DEPLOYMENT_VALUES_FILE=/data/edream-build/sources/ai-relay-ops/environments/134/edream-deployment.yaml \
+BUILD_ENV_FILE=config/build.env \
+DEPLOYMENT_VALUES_FILE= \
 scripts/images/build-ai-provider-adapter.sh
 ```
 
-脚本使用标准多阶段 Dockerfile，推送 Harbor，自动把构建机上的指定 values 更新到新 tag。构建输出不能代替 Git 提交：核对 values 的改动只涉及本次 Adapter，带回 Ops 源码仓提交并推送。记录源码 commit、最终 tag 和 digest；建议把 tag 写为 `<tag>@sha256:<digest>` 固定不可变版本。可用 `docker buildx imagetools inspect <构建输出的镜像>` 查看 digest。
+脚本使用标准多阶段 Dockerfile并推送 Harbor。显式空 DEPLOYMENT_VALUES_FILE 禁止自动改写 values，避免私有配置中的其他环境默认值被误更新；显式非空路径也优先于配置文件。镜像验收后再更新选定环境，或传入独立候选 values 文件。构建输出不能代替 Git 提交：核对 values 的改动只涉及本次 Adapter，带回 Ops 源码仓提交并推送。记录源码 commit、最终 tag 和 digest；建议把 tag 写为 `<tag>@sha256:<digest>` 固定不可变版本。可用 `docker buildx imagetools inspect <构建输出的镜像>` 查看 digest。
 
-5. 测试完整构建出来的镜像，包括默认应用启动和 multipart 图片上传，不能只测 mock 供应商或 /healthz。确认没有漏掉 runtime 依赖。
+5. 测试完整构建出来的镜像：
+
+```bash
+python3 scripts/images/verify-ai-provider-adapter.py \
+  --image <构建镜像@sha256:digest> \
+  --source-dir /data/edream-build/sources/ai-relay-broker \
+  --output /tmp/adapter-image-verification-<唯一编号>.json
+```
+
+验收入口以镜像默认命令启动临时容器，仅发布 loopback 端口，检查 healthz/readyz、SDK 导入、multipart 多图解析、mock 上传/提交、查询暂态、新旧下载响应及拒绝空内容/不受信跳转。核对镜像内全部 Adapter 源码、依赖声明和 SDK wheel 与输入源码的 SHA256 一致；生成 600 权限记录并删除临时容器。不传供应商密钥，不新建付费任务。它不代替真实上游的既有任务查询/下载验证。
+
 6. 按 README 的标准 package 流程制作并传输平台小包，或在目标机使用对应已提交的 Ops checkout；不要把构建机的私有配置和缓存同步到目标运行目录。
 
 本次修复源码的既有验证为 188 项测试通过；后续以当前仓库实际测试数量及结果为准。
@@ -96,7 +108,21 @@ scripts/platform/upgrade-adapter.sh -f environments/134/edream-deployment.yaml -
 
 首次预检还发现 Broker 已有 `NEWAPI_CATALOG_REFRESH_ENABLED=true` 未写入 Git，以及本地 CRLF 导致 Secret checksum 不一致。已保留原刷新参数和 Secret 引用顺序，并通过 .gitattributes 固定部署文件 LF；没有通过修改现有 Secret 或重启 Broker 绕过校验。
 
-Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_adapter_upgrade*.py' -v`，并执行 `scripts/verify-standard-deployment.sh`。本次 17 项发布保护测试及 3 项隔离 PostgreSQL 视图测试通过。测试目录不随运行发布包分发。
+Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_*.py' -v`，并执行 `scripts/verify-standard-deployment.sh`。本次 26 项发布保护/源码上传/构建目标测试及 3 项隔离 PostgreSQL 视图测试通过。Linux 下执行完整 CLI 检查；Windows 会跳过 Linux CLI 项。测试目录不随运行发布包分发。
+
+## 标准镜像构建验收
+
+2026-09-17 已从构建机的 Broker 7a9a137 源码快照执行标准 Dockerfile 构建，并推送 Harbor：
+
+- 镜像：`81.71.122.120/platform/ai-provider-adapter:main-20260917225600`
+- digest：`sha256:b9eb15a4b2572673b44cfb6bbace9957c9988608dab83a208cdac50f61c814d2`
+- 构建机验收记录：`/data/edream-build/validation/adapter-standard-20260917/image-verification.json`
+- 运行机验收记录：`/home/ubuntu/edream-backups/20260917-before-standard-image-validation/result.json`；临时验收 Pod 使用相同 digest，真实查询/下载三个既有任务均为完整 MP4，媒体跳转未携带密钥，验收 Pod 已删除，十个生产长期运行 Pod 和主业务进程不变。
+- 本次没有重新构建 New API、Broker 或其他镜像，也没有把标准候选镜像自动替换进生产 release。当前线上仍为上表的已验收镜像、Helm revision 12；之后发布须按专用入口预检再执行 --apply。
+
+构建机 `/data/edream-build/packages/edream-platform-current.tar.gz` 指向包含最新维护入口的生产基线包，保留当前线上镜像。标准新镜像候选包单独放在 `/data/edream-build/validation/adapter-standard-20260917/candidate-packages/`，其 134 values 只更换 Adapter tag/digest；不覆盖生产 current 包，也不把尚未正式发布的候选版本标记成线上基线。平台小包包含 chart、配置、脚本和文档，镜像本体在 Harbor，运行机已验证能够直接拉取。
+
+构建机本次仅清理 24 小时未使用的 Docker 构建缓存；保留镜像、Harbor 数据和源码备份。单镜像构建使用独立构建配置评估 4GB 最低余量，不降低仓库全平台预检默认的 10GB 要求。全平台 images/preflight.sh 会检查其他仓库，发现 New API 有未提交改动时不能为 Adapter 构建擅自覆盖；本次只构建已提交且哈希核对一致的 Adapter 输入。
 
 ## 最小验收
 
