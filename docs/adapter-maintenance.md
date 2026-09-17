@@ -18,8 +18,10 @@
 | 线上镜像 digest | sha256:d88a698f10b172bdd764543a004e315bc8bd32a2a9d577e8e3888259a35dbdab |
 | Service | ai-provider-adapter:80，容器端口 8080 |
 | 现有 Secret | ai-provider-adapter-secret，secret.create=false |
+| Helm 已保存状态 | revision 12，deployed；镜像及配置与运行状态一致 |
+| New API 限流 | CRITICAL_RATE_LIMIT_ENABLE=true，2000 次 / 1200 秒 |
 
-镜像已运行并完成验证；134 values 已固定相同版本。**Helm 已保存的 revision 8 仍是旧 Adapter 配置，首次 Helm 基线同步尚未执行。** 只更新 Git 不等于集群 Helm 状态已同步。
+2026-09-17 已完成首次 Helm 基线同步及限流发布。Adapter 保留已经验证的修复镜像；New API 保留原镜像，只有三个限流环境变量变更。主业务 edream.service 未重启，其余 8 个长期运行 Pod 的 UID、镜像和重启次数不变。后续从 Ops 最新 main 制包，不能继续使用旧发布包。
 
 本次线上版本是在此前正常镜像上只替换 Lingzhi 下载文件的紧急镜像；后续日常开发应走本仓库的标准 Dockerfile，不要永久依赖本次手工 overlay 构建。
 
@@ -81,22 +83,20 @@ scripts/platform/upgrade-adapter.sh -f environments/134/edream-deployment.yaml -
 
 阻止信息只显示资源名和字段路径，不显示配置值或 Secret。其他组件有漂移时，应先审查并完成平台基线同步，不能删掉校验或改用旧包绕过。预检并不能阻止其他操作者同时部署，必须避免并发发布。
 
-## 首次同步的注意事项
+## 本次同步与启动兼容性
 
-- 先使用当前已验证镜像，不必为了纳管再构建或再次更换代码。
-- 将 134 当前可用的镜像、Wan3 映射、Secret 引用、上游地址和超时固化进 Ops，再审查整个 release 的差异。
-- 若预检显示 New API 等其他组件有改动，先核对各组件当前状态、配置和模板，不批准未经审查的全量发布。
-- 成功发布并通过业务验证后，记录新的 Helm revision，这个 revision 才是后续正常升级的回滚基线。
-- 首次同步不使用 --atomic 自动回滚，也不直接 helm rollback 到旧 revision 8；旧状态会覆盖已经修复的镜像和 Wan3 配置。
+- revision 9：先将当前 Adapter 修复镜像、完整 Wan3 映射、外部 Secret 和超时纳入已有 platform-relay；其他组件不变。
+- revision 10：经审查加入三个 New API 限流参数，新实例启动迁移被运维只读视图的列依赖阻挡。旧健康实例持续提供服务。
+- revision 11：回退到已经验收的 revision 9，保留 Adapter 修复；没有回退到旧 revision 8。
+- revision 12：原子修复运维视图后，重新发布相同限流参数。New API Ready、重启次数为 0；实际进程环境变量及 Helm 保存值均已核验。
 
-2026-09-17 在 134 执行默认只读预检，发布被正常拦截，原因如下：
+视图属于 `ops-agent` 的部署辅助文件，不是视频生成代码。原视图直接引用业务表字段，导致 GORM 即使把 `channels.status_code_mapping` 迁移到相同的 varchar(1024) 也被 PostgreSQL 拒绝；这会影响任何后续 New API 重启，与限流数值无关。
 
-- relay-new-api：仓库配置含 CRITICAL_RATE_LIMIT 三个参数，线上 Deployment 尚未配置；直接发布还会改变 Secret checksum。
-- relay-broker：线上含 NEWAPI_CATALOG_REFRESH_ENABLED，仓库配置缺失；直接发布还会改变 Secret checksum。
+修复位于 `ops-agent/deploy/host/newapi-readonly-views.sql`：用整行 JSON 读取原白名单字段并显式保留原类型，解除列依赖。四个视图在同一事务内更新；现场验证 39 个字段类型、结果、view ID、owner 和 ACL 不变，两个 reader 仍可查询且没有表写权限。保留 ops_agent_reader 原有 channels 只读权限，不扩权也不撤权。该修复不修改业务表或业务数据，不需要重部署 Ops Agent、主业务或其他容器，也不能重跑会改密码和 Secret 的 install-readers.py。维护及隔离数据库测试见该仓库 `deploy/host/newapi-readonly-views.md`。
 
-本次没有执行 --apply；预检前后 10 个长期运行 Pod 的 UID、镜像、重启次数不变，edream.service 正常。先单独审查这两项基线差异，明确保留或调整配置及是否允许相应组件滚动重启，再完成首次 Helm 同步。不要为了放行 Adapter 发布直接删除现有配置或绕过检查。
+首次预检还发现 Broker 已有 `NEWAPI_CATALOG_REFRESH_ENABLED=true` 未写入 Git，以及本地 CRLF 导致 Secret checksum 不一致。已保留原刷新参数和 Secret 引用顺序，并通过 .gitattributes 固定部署文件 LF；没有通过修改现有 Secret 或重启 Broker 绕过校验。
 
-Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_adapter_upgrade*.py' -v`，并执行 `scripts/verify-standard-deployment.sh`。测试目录不随运行发布包分发。维护改动目前位于 `ops-runtime-build-cache-flow` 分支，团队使用前应审查并合入 Ops 主分支。
+Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_adapter_upgrade*.py' -v`，并执行 `scripts/verify-standard-deployment.sh`。本次 17 项发布保护测试及 3 项隔离 PostgreSQL 视图测试通过。测试目录不随运行发布包分发。
 
 ## 最小验收
 
@@ -113,6 +113,8 @@ Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_adap
 
 可以复用既有已完成任务验证查询和下载，不再次生成、不重复扣费。若测试新生成任务，应另行确认企业账号、预算和数量，不自动批量重试。
 
+revision 12 发布后，主业务原 AIClient 经 New API 查询并下载了 3 个既有任务，均为有效完整 MP4，字节数和 SHA256 与发布前一致。本次未新建付费任务，未写 COS 或修改授权/计费记录；上游直接返回视频和受信媒体跳转的兼容验证已在同一 Adapter 镜像上通过。这不等于重新执行了所有供应商的付费生成流程。
+
 历史记录修复属于独立数据维护，不是 Helm 发布步骤。已回填的 8 条记录、原任务和已返还次数不会因升级自动改变。
 
 ## 回滚
@@ -125,3 +127,11 @@ Ops 源码仓自动检查：`python3 -m unittest discover -s tests -p 'test_adap
 - 数据库、COS 视频、授权和计费流水不在镜像回滚中操作。
 
 本次紧急修复前的生产备份位于 `/home/ubuntu/edream-backups/20260917-0945-before-wan3-content-fix`；其中 rollback.sh 会回退到下载修复之前的版本，虽然保留旧查询修复，但会重新触发本次 302 空内容问题，不应作为下一次正常升级的“成功基线”。下一次发布应先备份当前已修复版本。
+
+本次受限备份（目录 700、文件 600）：
+
+- `/home/ubuntu/edream-backups/20260917-2218-before-helm-adoption`：已经修复的 Adapter 镜像本体、校验和、全平台快照及首次同步验收。
+- `/home/ubuntu/edream-backups/20260917-2222-before-rate-limit`：revision 9、原视图定义/字段/owner/ACL 及原子修复 SQL。
+- `/home/ubuntu/edream-backups/20260917-2235-before-rate-limit-retry`：revision 11、限流发布前快照及 revision 12 的最终验收快照。
+
+正常后续升级以 revision 12 的当前健康状态为基线，发布前再备份。不要回滚 revision 8；不要恢复存在列依赖的旧运维视图。仅回退限流时，revision 11 的平台配置已包含 Adapter 修复，但仍须审查整个 release 的回滚影响。
