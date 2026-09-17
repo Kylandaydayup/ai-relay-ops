@@ -1,8 +1,0 @@
-# Pending change from 4f4d0fd: deliberately NOT applied by the normal upgrade.
-# After approval, merge this env block into edream-deployment.yaml and review
-# the new-api rollout separately. This is not a complete deployment file.
-new-api:
-  env:
-    CRITICAL_RATE_LIMIT_ENABLE: "true"
-    CRITICAL_RATE_LIMIT: "2000"
-    CRITICAL_RATE_LIMIT_DURATION: "1200"

@@ -58,7 +58,9 @@ new-api:
     TZ: Asia/Shanghai
     NODE_NAME: relay-new-api-staging-1
     TLS_INSECURE_SKIP_VERIFY: "true"
-    # Deferred rate-limit settings are in new-api-rate-limit.pending.yaml.
+    CRITICAL_RATE_LIMIT_ENABLE: "true"
+    CRITICAL_RATE_LIMIT: "2000"
+    CRITICAL_RATE_LIMIT_DURATION: "1200"
   secret:
     create: false
     SQL_DSN: ''
